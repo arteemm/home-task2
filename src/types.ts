@@ -19,3 +19,10 @@ export type PostItemType = {
   blogId: string;
   blogName: string;
 };
+
+export type RequestPostBody = {
+    title: string;
+    shortDescription: string;
+    content: string;
+    blogId: string;
+};

@@ -2,7 +2,7 @@ import { BlogItemType, RequestBody } from '../types';
 
 const blogItem: BlogItemType = {
     id: '0',
-    name: "string",
+    name: "lalalala",
     description: "string",
     websiteUrl: 'false',
 }
@@ -28,4 +28,7 @@ export const blogRepository = {
     deleteBlog: (id: number) => {
         blogItems.splice(id, 1);
     },
+    deleteAllData: () => {
+        blogItems.length = 0;
+    }
 }
