@@ -1,18 +1,21 @@
 import { PostItemType, RequestPostBody } from '../types';
 import { blogRepository } from  './blogs-repository';
 
+let postId = 0;
+
 const postItem: PostItemType = {
-    id: '0',
+    id: postId.toString(),
     title: 'string',
     shortDescription: 'string',
     content: 'string',
     blogId: 'string',
     blogName: 'string',
-}
+};
   
 const postItems: PostItemType[] = [postItem];
 
 export const postRepository = {
+
     getAllPosts : () => {
         return postItems;
     },
@@ -21,7 +24,7 @@ export const postRepository = {
         return blog;
     },
     createPost : (reqObj: RequestPostBody) => {
-        const id = postItems.length;
+        const id = ++postId;
         const blog = blogRepository.getBlogById(reqObj.blogId);
         if (blog) {
             postItems.push({...reqObj, id: id.toString(), blogName: blog.name});

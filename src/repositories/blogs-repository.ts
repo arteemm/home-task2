@@ -1,7 +1,9 @@
 import { BlogItemType, RequestBody } from '../types';
 
+let blogId = 0;
+
 const blogItem: BlogItemType = {
-    id: '0',
+    id: blogId.toString(),
     name: "lalalala",
     description: "string",
     websiteUrl: 'false',
@@ -18,7 +20,7 @@ export const blogRepository = {
         return blog;
     },
     createBlog : (reqObj: RequestBody) => {
-        const id = blogItems.length;
+        const id = ++blogId;
         blogItems.push({...reqObj, id: id.toString()});
         return id.toString();
     },
