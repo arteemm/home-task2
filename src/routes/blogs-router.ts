@@ -58,10 +58,10 @@ blogsRouter.post('/',
 
 blogsRouter.put('/:id',
   validationAuth,
-  body(['name','description', 'websiteUrl']).optional({ nullable: true }).isString().trim().notEmpty(),
-  body('name').optional({ nullable: true }).isLength({min: 1, max:15}),
-  body('description').optional({ nullable: true }).isLength({min: 1, max:500}),
-  body('websiteUrl').optional({ nullable: true }).isLength({min: 1, max:100}).matches(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).withMessage('lal'),
+  body(['name','description', 'websiteUrl']).isString().trim().notEmpty(),
+  body('name').isLength({min: 1, max:15}),
+  body('description').isLength({min: 1, max:500}),
+  body('websiteUrl').isLength({min: 1, max:100}).matches(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).withMessage('lal'),
  (req: Request, res: Response) => {
   const result = myValidationResult(req);
   const id = req.params.id;

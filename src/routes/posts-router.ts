@@ -65,10 +65,10 @@ postsRouter.post('/',
 
 postsRouter.put('/:id',
   validationAuth,
-  body(['title', 'shortDescription', 'content', 'blogId']).optional({ nullable: true }).isString().trim().notEmpty(),
-  body('title').optional({ nullable: true }).isLength({min: 1, max:30}),
-  body('shortDescription').optional({ nullable: true }).isLength({min: 1, max:100}),
-  body('content').optional({ nullable: true }).isLength({min: 1, max:1000}),
+  body(['title', 'shortDescription', 'content', 'blogId']).isString().trim().notEmpty(),
+  body('title').isLength({min: 1, max:30}),
+  body('shortDescription').isLength({min: 1, max:100}),
+  body('content').isLength({min: 1, max:1000}),
  (req: Request, res: Response) => {
   const result = myValidationResult(req);
   const id = req.params.id;
