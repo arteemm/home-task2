@@ -33,12 +33,11 @@ blogsRouter.get('/:id', (req: Request, res: Response) => {
   const id = req.params.id;
   const blog = blogRepository.getBlogById(id);
 
-  if (!blog) {
-    res.send(404);
-    return;
+  if (blog) {
+    res.send(blog);
   }
 
-  res.send(blog);
+  res.send(404);
 });
 
 blogsRouter.post('/',

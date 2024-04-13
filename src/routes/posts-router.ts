@@ -34,12 +34,11 @@ postsRouter.get('/:id', (req: Request, res: Response) => {
   const id = req.params.id;
   const post = postRepository.getPostById(id);
 
-  if (!post) {
-    res.send(404);
-    return;
+  if (post) {
+    res.send(post);
   }
 
-  res.send(post);
+  res.send(404);
 });
 
 postsRouter.post('/',
