@@ -53,7 +53,7 @@ blogsRouter.post('/',
     const blog = blogRepository.getBlogById(id);
     res.status(201).send(blog);
   }
-  res.status(400).send({ errors: result.array({ onlyFirstError: true }) });
+  res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
 });
 
 blogsRouter.put('/:id',
@@ -73,7 +73,7 @@ blogsRouter.put('/:id',
     blogRepository.updatePost(id, req.body);
     res.send(204);
   }
-  res.status(400).send({ errors: result.array({ onlyFirstError: true }) });
+  res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
 })
 
 blogsRouter.delete('/:id',

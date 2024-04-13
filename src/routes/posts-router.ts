@@ -60,7 +60,7 @@ postsRouter.post('/',
     const post = postRepository.getPostById(id);
     res.status(201).send(post);
   }
-  res.status(400).send({ errors: result.array({ onlyFirstError: true }) });
+  res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
 });
 
 postsRouter.put('/:id',
@@ -81,7 +81,7 @@ postsRouter.put('/:id',
     postRepository.updatePost(id, req.body);
     res.send(204);
   }
-  res.status(400).send({ errors: result.array({ onlyFirstError: true }) });
+  res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
 });
 
 postsRouter.delete('/:id',
