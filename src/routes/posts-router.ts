@@ -95,6 +95,6 @@ validationAuth,
     return;
   }
 
-  postRepository.deleteBlog(+id);
+  postRepository.deletePost(+id);
   res.send(204);
 });

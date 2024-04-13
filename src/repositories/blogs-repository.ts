@@ -25,10 +25,14 @@ export const blogRepository = {
         return id.toString();
     },
     updatePost: (id: string ,reqObj: RequestBody) => {
-        blogItems[+id] = {...blogItems[+id], ...reqObj};
+        blogItems[+id] = Object.assign(blogItems[+id], reqObj);
     },
     deleteBlog: (id: number) => {
-        blogItems.splice(id, 1);
+        const post = blogItems.find(item => item.id === id.toString());
+        if (post) {
+            const realId = blogItems.indexOf(post)
+            blogItems.splice(realId, 1);
+        }
     },
     deleteAllData: () => {
         blogItems.length = 0;

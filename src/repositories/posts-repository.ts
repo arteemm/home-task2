@@ -20,22 +20,26 @@ export const postRepository = {
         return postItems;
     },
     getPostById : (id: string) => {
-        const blog = postItems.find(item => item.id === id);
-        return blog;
+        const post = postItems.find(item => item.id === id);
+        return post;
     },
     createPost : (reqObj: RequestPostBody) => {
         const id = ++postId;
-        const blog = blogRepository.getBlogById(reqObj.blogId);
-        if (blog) {
-            postItems.push({...reqObj, id: id.toString(), blogName: blog.name});
+        const post = blogRepository.getBlogById(reqObj.blogId);
+        if (post) {
+            postItems.push({...reqObj, id: id.toString(), blogName: post.name});
         }
         return id.toString();
     },
     updatePost: (id: string ,reqObj: RequestPostBody) => {
-        postItems[+id] = {...postItems[+id], ...reqObj};
+        postItems[+id] = Object.assign(postItems[+id], reqObj);
     },
-    deleteBlog: (id: number) => {
-        postItems.splice(id, 1);
+    deletePost: (id: number) => {
+        const post = postItems.find(item => item.id === id.toString());
+        if (post) {
+            const realId = postItems.indexOf(post)
+            postItems.splice(realId, 1);
+        }
     },
     deleteAllData: () => {
         postItems.length = 0;
