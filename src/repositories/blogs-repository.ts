@@ -25,12 +25,16 @@ export const blogRepository = {
         return id.toString();
     },
     updatePost: (id: string ,reqObj: RequestBody) => {
-        blogItems[+id] = Object.assign(blogItems[+id], reqObj);
+        let blog = blogItems.find(item => item.id === id);
+        if (blog) {
+            const realId = blogItems.indexOf(blog);
+            blogItems[realId] = Object.assign(blogItems[+id], reqObj);
+        }
     },
     deleteBlog: (id: number) => {
-        const post = blogItems.find(item => item.id === id.toString());
-        if (post) {
-            const realId = blogItems.indexOf(post)
+        const blog = blogItems.find(item => item.id === id.toString());
+        if (blog) {
+            const realId = blogItems.indexOf(blog)
             blogItems.splice(realId, 1);
         }
     },

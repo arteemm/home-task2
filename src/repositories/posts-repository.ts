@@ -32,7 +32,11 @@ export const postRepository = {
         return id.toString();
     },
     updatePost: (id: string ,reqObj: RequestPostBody) => {
-        postItems[+id] = Object.assign(postItems[+id], reqObj);
+        let post = postItems.find(item => item.id === id);
+        if (post) {
+            const realId = postItems.indexOf(post)
+            postItems[realId] = {...postItems[+id], ...reqObj};
+        }
     },
     deletePost: (id: number) => {
         const post = postItems.find(item => item.id === id.toString());
