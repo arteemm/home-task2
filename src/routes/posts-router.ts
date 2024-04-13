@@ -63,7 +63,7 @@ postsRouter.post('/',
   res.status(400).send({ errors: result.array({ onlyFirstError: true }) });
 });
 
-postsRouter.put('/',
+postsRouter.put('/:id',
   validationAuth,
   body(['title', 'shortDescription', 'content', 'blogId']).optional({ nullable: true }).isString().trim().notEmpty(),
   body('title').optional({ nullable: true }).isLength({min: 1, max:30}),
@@ -72,7 +72,8 @@ postsRouter.put('/',
  (req: Request, res: Response) => {
   const result = myValidationResult(req);
   const id = req.params.id;
-  if (!postRepository.getPostById(id)) {
+  const post = postRepository.getPostById(id)
+  if (!post) {
     res.send(404);
   }
 
