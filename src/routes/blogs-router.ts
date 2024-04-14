@@ -14,10 +14,11 @@ const myValidationResult: ResultFactory<{}> = validationResult.withDefaults({
 });
 
 const validationAuth = ((req: Request, res: Response, next: NextFunction) => {
+  const basic = (req.headers.authorization || '').split(' ')[0] || '';
   const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
   const [ login, password ] = Buffer.from(b64auth, 'base64').toString().split(':')
 
-  if (login && password && login === auth.login && password === auth.password) {
+  if (login && password && login === auth.login && password === auth.password && basic === 'Basic') {
     return next()
   }
 

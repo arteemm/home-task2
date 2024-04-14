@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { postRepository } from '../repositories/posts-repository';
-import { body, validationResult, ResultFactory } from 'express-validator';
+import { body, validationResult, ResultFactory, param } from 'express-validator';
 import { blogRepository } from '../repositories/blogs-repository';
 
 export const postsRouter = Router({});
@@ -44,12 +44,6 @@ postsRouter.get('/:id', (req: Request, res: Response) => {
 postsRouter.post('/',
   validationAuth,
   body(['title', 'shortDescription', 'content', 'blogId']).isString().trim().notEmpty(),
-  body('blogId').custom(async value => {
-    const blog = await blogRepository.getBlogById(value);
-    if (!blog) {
-      throw new Error('blog has not been found');
-    }
-  }),
   body('title').isLength({min: 1, max:30}),
   body('shortDescription').isLength({min: 1, max:100}),
   body('content').isLength({min: 1, max:1000}),
@@ -65,6 +59,12 @@ postsRouter.post('/',
 
 postsRouter.put('/:id',
   validationAuth,
+  body('blogId').custom(value => {
+    const blog = blogRepository.getBlogById(value);
+      if (!blog) {
+        throw new Error('blog has not beed=n found');
+      }
+  }),
   body(['title', 'shortDescription', 'content', 'blogId']).isString().trim().notEmpty(),
   body('title').isLength({min: 1, max:30}),
   body('shortDescription').isLength({min: 1, max:100}),
