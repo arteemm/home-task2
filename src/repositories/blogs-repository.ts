@@ -28,7 +28,7 @@ export const blogRepository = {
         let blog = blogItems.find(item => item.id === id);
         if (blog) {
             const realId = blogItems.indexOf(blog);
-            blogItems[realId] = Object.assign(blogItems[+id], reqObj);
+            blogItems[realId] = Object.assign(blogItems[realId], reqObj);
         }
     },
     deleteBlog: (id: number) => {

@@ -35,7 +35,7 @@ export const postRepository = {
         let post = postItems.find(item => item.id === id);
         if (post) {
             const realId = postItems.indexOf(post)
-            postItems[realId] = {...postItems[+id], ...reqObj};
+            postItems[realId] = {...postItems[realId], ...reqObj};
         }
     },
     deletePost: (id: number) => {
