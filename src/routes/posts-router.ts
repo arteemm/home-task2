@@ -19,7 +19,7 @@ const validationAuth = ((req: Request, res: Response, next: NextFunction) => {
   const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
   const [ login, password ] = Buffer.from(b64auth, 'base64').toString().split(':')
 
-  if (login && password && login === auth.login && password === auth.password) {
+  if (login && password && login === auth.login && password === auth.password && basic === 'Basic') {
     return next()
   }
 
@@ -48,6 +48,12 @@ postsRouter.post('/',
   body('title').isLength({min: 1, max:30}),
   body('shortDescription').isLength({min: 1, max:100}),
   body('content').isLength({min: 1, max:1000}),
+  body('blogId').custom(async value => {
+    const blog = await blogRepository.getBlogById(value);
+      if (!blog) {
+        throw new Error('blog has not been found');
+      }
+  }),
  (req: Request, res: Response) => {
   const result = myValidationResult(req);
   if (result.isEmpty()) {
@@ -64,12 +70,6 @@ postsRouter.put('/:id',
   body('title').isLength({min: 1, max:30}),
   body('shortDescription').isLength({min: 1, max:100}),
   body('content').isLength({min: 1, max:1000}),
-  body('blogId').custom(async value => {
-    const blog = await blogRepository.getBlogById(value);
-      if (!blog) {
-        throw new Error('blog has not beed=n found');
-      }
-  }),
  (req: Request, res: Response) => {
   const result = myValidationResult(req);
   const id = req.params.id;
