@@ -70,6 +70,12 @@ postsRouter.put('/:id',
   body('title').isLength({min: 1, max:30}),
   body('shortDescription').isLength({min: 1, max:100}),
   body('content').isLength({min: 1, max:1000}),
+  body('blogId').custom(async value => {
+    const blog = await blogRepository.getBlogById(value);
+      if (!blog) {
+        throw new Error('blog has not been found');
+      }
+  }),
  (req: Request, res: Response) => {
   const result = myValidationResult(req);
   const id = req.params.id;
