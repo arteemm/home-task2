@@ -15,6 +15,7 @@ const myValidationResult: ResultFactory<{}> = validationResult.withDefaults({
 });
 
 const validationAuth = ((req: Request, res: Response, next: NextFunction) => {
+  const basic = (req.headers.authorization || '').split(' ')[0] || '';
   const b64auth = (req.headers.authorization || '').split(' ')[1] || '';
   const [ login, password ] = Buffer.from(b64auth, 'base64').toString().split(':')
 
@@ -59,16 +60,16 @@ postsRouter.post('/',
 
 postsRouter.put('/:id',
   validationAuth,
-  body('blogId').custom(value => {
-    const blog = blogRepository.getBlogById(value);
-      if (!blog) {
-        throw new Error('blog has not beed=n found');
-      }
-  }),
   body(['title', 'shortDescription', 'content', 'blogId']).isString().trim().notEmpty(),
   body('title').isLength({min: 1, max:30}),
   body('shortDescription').isLength({min: 1, max:100}),
   body('content').isLength({min: 1, max:1000}),
+  body('blogId').custom(async value => {
+    const blog = await blogRepository.getBlogById(value);
+      if (!blog) {
+        throw new Error('blog has not beed=n found');
+      }
+  }),
  (req: Request, res: Response) => {
   const result = myValidationResult(req);
   const id = req.params.id;
