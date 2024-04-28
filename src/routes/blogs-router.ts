@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { blogRepository } from '../repositories/blogs-repository';
+import { blogRepository } from '../repositories/db-repository';
 import { body, validationResult, ResultFactory } from 'express-validator';
 
 export const blogsRouter = Router({});
@@ -25,20 +25,20 @@ const validationAuth = ((req: Request, res: Response, next: NextFunction) => {
   res.status(401).send('Authentication required.')
 });
 
-blogsRouter.get('/', (req: Request, res: Response) => {
-  const blogs = blogRepository.getAllBlogs();
+blogsRouter.get('/', async (req: Request, res: Response) => {
+  const blogs = await blogRepository.getAllBlogs();
   res.send(blogs);
 });
 
-blogsRouter.get('/:id', (req: Request, res: Response) => {
+blogsRouter.get('/:id', async (req: Request, res: Response) => {
   const id = req.params.id;
-  const blog = blogRepository.getBlogById(id);
+  const blog = await blogRepository.getBlogById(id);
 
   if (blog) {
-    res.send(blog);
+    return res.send(blog);
   }
 
-  res.send(404);
+  return res.send(404);
 });
 
 blogsRouter.post('/',
@@ -47,14 +47,13 @@ blogsRouter.post('/',
   body('name').isLength({min: 1, max:15}),
   body('description').isLength({min: 1, max:500}),
   body('websiteUrl').isLength({min: 1, max:100}).matches(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).withMessage('lal'),
- (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
   const result = myValidationResult(req);
   if (result.isEmpty()) {
-    const id = blogRepository.createBlog(req.body);
-    const blog = blogRepository.getBlogById(id);
-    res.status(201).send(blog);
+    const blog =  await blogRepository.createBlog(req.body);
+    return res.status(201).send(blog);
   }
-  res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
+  return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
 });
 
 blogsRouter.put('/:id',
@@ -63,31 +62,32 @@ blogsRouter.put('/:id',
   body('name').isLength({min: 1, max:15}),
   body('description').isLength({min: 1, max:500}),
   body('websiteUrl').isLength({min: 1, max:100}).matches(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).withMessage('lal'),
- (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
   const result = myValidationResult(req);
   const id = req.params.id;
-  if (!blogRepository.getBlogById(id)) {
-    res.send(404);
-  }
 
   if (result.isEmpty()) {
-    blogRepository.updatePost(id, req.body);
-    res.send(204);
+    const updatedResult = await blogRepository.updatePost(id, req.body);
+
+    if (!updatedResult) {
+      return res.send(404);
+    }
+
+    return res.send(204);
   }
-  res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
+  return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
 })
 
 blogsRouter.delete('/:id',
 validationAuth,
-(req: Request, res: Response) => {
+async (req: Request, res: Response) => {
   const id = req.params.id;
-  const blog = blogRepository.getBlogById(id);
+  const result =  await blogRepository.deleteBlog(id);
 
-  if (!blog) {
+  if (!result) {
     res.send(404);
     return;
   }
-
-  blogRepository.deleteBlog(+id);
-  res.send(204);
+ 
+  return res.send(204);
 });

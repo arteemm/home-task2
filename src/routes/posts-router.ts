@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { postRepository } from '../repositories/posts-repository';
+import { postRepository } from '../repositories/db-repository';
 import { body, validationResult, ResultFactory, param } from 'express-validator';
 import { blogRepository } from '../repositories/blogs-repository';
 
@@ -26,20 +26,20 @@ const validationAuth = ((req: Request, res: Response, next: NextFunction) => {
   res.status(401).send('Authentication required.')
 });
 
-postsRouter.get('/', (req: Request, res: Response) => {
-  const blogs = postRepository.getAllPosts();
+postsRouter.get('/', async (req: Request, res: Response) => {
+  const blogs = await postRepository.getAllPosts();
   res.send(blogs);
 });
 
-postsRouter.get('/:id', (req: Request, res: Response) => {
+postsRouter.get('/:id', async (req: Request, res: Response) => {
   const id = req.params.id;
-  const post = postRepository.getPostById(id);
+  const post = await postRepository.getPostById(id);
 
   if (post) {
-    res.send(post);
+    return res.send(post);
   }
 
-  res.send(404);
+  return res.send(404);
 });
 
 postsRouter.post('/',
@@ -54,14 +54,13 @@ postsRouter.post('/',
         throw new Error('blog has not been found');
       }
   }),
- (req: Request, res: Response) => {
-  const result = myValidationResult(req);
-  if (result.isEmpty()) {
-    const id = postRepository.createPost(req.body);
-    const post = postRepository.getPostById(id);
-    res.status(201).send(post);
-  }
-  res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
+  async (req: Request, res: Response) => {
+    const result = myValidationResult(req);
+    if (result.isEmpty()) {
+      const newPost = await postRepository.createPost(req.body);
+      return res.status(201).send(newPost);
+    }
+    return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
 });
 
 postsRouter.put('/:id',
@@ -76,32 +75,33 @@ postsRouter.put('/:id',
         throw new Error('blog has not been found');
       }
   }),
- (req: Request, res: Response) => {
-  const result = myValidationResult(req);
-  const id = req.params.id;
-  const post = postRepository.getPostById(id)
-  if (!post) {
-    res.send(404);
-  }
+  async (req: Request, res: Response) => {
+    const result = myValidationResult(req);
+    const id = req.params.id;
 
-  if (result.isEmpty()) {
-    postRepository.updatePost(id, req.body);
-    res.send(204);
-  }
-  res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
+    if (result.isEmpty()) {
+      const post = await postRepository.updatePost(id, req.body);
+
+      if (!post) {
+        return res.send(404);
+      }
+  
+      return res.send(204);
+    }
+
+    return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
 });
 
 postsRouter.delete('/:id',
-validationAuth,
-(req: Request, res: Response) => {
-  const id = req.params.id;
-  const post = postRepository.getPostById(id);
+  validationAuth,
+  async (req: Request, res: Response) => {
+    const id = req.params.id;
+    const result = await postRepository.deletePost(id);;
 
-  if (!post) {
-    res.send(404);
-    return;
-  }
-
-  postRepository.deletePost(+id);
-  res.send(204);
+    if (!result) {
+      res.send(404);
+      return;
+    }
+ 
+    return res.send(204);
 });

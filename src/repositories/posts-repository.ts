@@ -16,36 +16,36 @@ const postItems: PostItemType[] = [postItem];
 
 export const postRepository = {
 
-    getAllPosts : () => {
+    async getAllPosts (): Promise<PostItemType[]> {
         return postItems;
     },
-    getPostById : (id: string) => {
+    async getPostById (id: string): Promise<PostItemType | undefined> {
         const post = postItems.find(item => item.id === id);
         return post;
     },
-    createPost : (reqObj: RequestPostBody) => {
+    async createPost (reqObj: RequestPostBody): Promise<string> {
         const id = ++postId;
-        const post = blogRepository.getBlogById(reqObj.blogId);
+        const post = await blogRepository.getBlogById(reqObj.blogId);
         if (post) {
             postItems.push({...reqObj, id: id.toString(), blogName: post.name});
         }
         return id.toString();
     },
-    updatePost: (id: string ,reqObj: RequestPostBody) => {
+    async updatePost (id: string ,reqObj: RequestPostBody) {
         let post = postItems.find(item => item.id === id);
         if (post) {
             const realId = postItems.indexOf(post)
             postItems[realId] = {...postItems[realId], ...reqObj};
         }
     },
-    deletePost: (id: number) => {
+    async deletePost (id: number) {
         const post = postItems.find(item => item.id === id.toString());
         if (post) {
             const realId = postItems.indexOf(post)
             postItems.splice(realId, 1);
         }
     },
-    deleteAllData: () => {
+    async deleteAllData () {
         postItems.length = 0;
     }
 }

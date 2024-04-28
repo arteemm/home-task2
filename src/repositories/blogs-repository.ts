@@ -12,33 +12,33 @@ const blogItem: BlogItemType = {
 const blogItems: BlogItemType[] = [blogItem];
 
 export const blogRepository = {
-    getAllBlogs : () => {
+    async getAllBlogs (): Promise<BlogItemType[]> {
         return blogItems;
     },
-    getBlogById : (id: string) => {
+    async getBlogById (id: string): Promise<BlogItemType | undefined> {
         const blog = blogItems.find(item => item.id === id);
         return blog;
     },
-    createBlog : (reqObj: RequestBody) => {
+    async createBlog (reqObj: RequestBody): Promise<string> {
         const id = ++blogId;
         blogItems.push({...reqObj, id: id.toString()});
         return id.toString();
     },
-    updatePost: (id: string ,reqObj: RequestBody) => {
+    async updatePost (id: string ,reqObj: RequestBody) {
         let blog = blogItems.find(item => item.id === id);
         if (blog) {
             const realId = blogItems.indexOf(blog);
             blogItems[realId] = Object.assign(blogItems[realId], reqObj);
         }
     },
-    deleteBlog: (id: number) => {
+    async deleteBlog (id: number) {
         const blog = blogItems.find(item => item.id === id.toString());
         if (blog) {
             const realId = blogItems.indexOf(blog)
             blogItems.splice(realId, 1);
         }
     },
-    deleteAllData: () => {
+    async deleteAllData () {
         blogItems.length = 0;
     }
 }
