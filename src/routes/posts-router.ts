@@ -1,7 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { postRepository } from '../repositories/db-repository';
+import { postRepository, blogRepository } from '../repositories/db-repository';
 import { body, validationResult, ResultFactory, param } from 'express-validator';
-import { blogRepository } from '../repositories/blogs-repository';
 
 export const postsRouter = Router({});
 
