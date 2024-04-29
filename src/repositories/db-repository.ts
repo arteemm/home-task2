@@ -22,7 +22,7 @@ export const postRepository = {
             blogName: blog?.name || '',
             id: `${+(date)}`,
         };
-        const result = await postsCollection.insertOne(newPost);
+        const result = await postsCollection.insertOne({...newPost});
         return newPost;
     },
     async updatePost (id: string ,reqObj: RequestPostBody): Promise<boolean> {
@@ -57,7 +57,7 @@ export const blogRepository = {
             isMembership: false,
             id: `${+(date)}`,
         };
-        const result = await blogsCollection.insertOne(newBlog)
+        const result = await blogsCollection.insertOne({...newBlog})
         return newBlog;
     },
     async updatePost (id: string ,reqObj: RequestBody): Promise<boolean> {
