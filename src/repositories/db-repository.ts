@@ -1,13 +1,19 @@
 import { PostItemType, RequestPostBody, BlogItemType, RequestBody } from '../types';
 import { blogsCollection, postsCollection } from './db';
 
+const options = {
+    projection: {
+        _id: 0,
+    }
+}
+
 export const postRepository = {
 
     async getAllPosts (): Promise<PostItemType[]> {
-        return postsCollection.find({}).toArray();
+        return postsCollection.find({}, options).toArray();
     },
     async getPostById (id: string): Promise<PostItemType | null> {
-        const post: PostItemType | null = await postsCollection.findOne({id});
+        const post: PostItemType | null = await postsCollection.findOne({id}, options);
         if (post) {
             return post;
         }
@@ -40,10 +46,10 @@ export const postRepository = {
 
 export const blogRepository = {
     async getAllBlogs (): Promise<BlogItemType[]> {
-        return blogsCollection.find({}).toArray();
+        return blogsCollection.find({}, options).toArray();
     },
     async getBlogById (id: string): Promise<BlogItemType | null> {
-        const blog: BlogItemType | null = await blogsCollection.findOne({id});
+        const blog: BlogItemType | null = await blogsCollection.findOne({id}, options);
         if (blog) {
             return blog;
         }

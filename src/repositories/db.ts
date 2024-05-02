@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { Collection, MongoClient } from 'mongodb';
 import { BlogItemType, PostItemType } from '../types';
 import * as dotenv from 'dotenv';
 
