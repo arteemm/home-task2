@@ -17,10 +17,10 @@ const options = {
 
 const setDirection = (sortDirection: 'asc' | 'desc') => {
     if (sortDirection === 'asc') {
-        return 1;
+        return -1;
     }
     
-    return -1;
+    return 1;
 };
 
 export const postRepository = {
