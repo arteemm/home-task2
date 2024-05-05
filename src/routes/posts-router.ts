@@ -1,6 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { postRepository, blogRepository } from '../repositories/db-repository';
-import { body, validationResult, ResultFactory, param } from 'express-validator';
+import { postsService } from '../domain/posts-service';
+import { blogRepository } from '../repositories/db-repository';
+import { body, validationResult, ResultFactory } from 'express-validator';
+import { PostsQueryParams } from '../types';
 
 export const postsRouter = Router({});
 
@@ -25,14 +27,15 @@ const validationAuth = ((req: Request, res: Response, next: NextFunction) => {
   res.status(401).send('Authentication required.')
 });
 
-postsRouter.get('/', async (req: Request, res: Response) => {
-  const blogs = await postRepository.getAllPosts();
+postsRouter.get('/', async (req: Request<{}, {}, {}, PostsQueryParams>, res: Response) => {
+  const postsQueryObj = req.query;
+  const blogs = await postsService.getAllPosts(postsQueryObj);
   res.send(blogs);
 });
 
 postsRouter.get('/:id', async (req: Request, res: Response) => {
   const id = req.params.id;
-  const post = await postRepository.getPostById(id);
+  const post = await postsService.getPostById(id);
 
   if (post) {
     return res.send(post);
@@ -56,7 +59,7 @@ postsRouter.post('/',
   async (req: Request, res: Response) => {
     const result = myValidationResult(req);
     if (result.isEmpty()) {
-      const newPost = await postRepository.createPost(req.body);
+      const newPost = await postsService.createPost(req.body);
       return res.status(201).send(newPost);
     }
     return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
@@ -79,7 +82,7 @@ postsRouter.put('/:id',
     const id = req.params.id;
 
     if (result.isEmpty()) {
-      const post = await postRepository.updatePost(id, req.body);
+      const post = await postsService.updatePost(id, req.body);
 
       if (!post) {
         return res.send(404);
@@ -95,7 +98,7 @@ postsRouter.delete('/:id',
   validationAuth,
   async (req: Request, res: Response) => {
     const id = req.params.id;
-    const result = await postRepository.deletePost(id);;
+    const result = await postsService.deletePost(id);;
 
     if (!result) {
       res.send(404);

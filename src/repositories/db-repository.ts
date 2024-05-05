@@ -1,33 +1,49 @@
-import { PostItemType, RequestPostBody, BlogItemType, RequestBody } from '../types';
+import { PostItemType,
+    RequestPostBody,
+    BlogItemType,
+    RequestBlogBody,
+    BlogsQueryParams,
+    BlogItemsResponse,
+    PostsQueryParams,
+    PostItemsResponse,
+} from '../types';
 import { blogsCollection, postsCollection } from './db';
 
 const options = {
     projection: {
         _id: 0,
     }
-}
+};
+
+const setDirection = (sortDirection: 'asc' | 'desc') => {
+    if (sortDirection === 'asc') {
+        return 1;
+    }
+    
+    return -1;
+};
 
 export const postRepository = {
 
-    async getAllPosts (): Promise<PostItemType[]> {
-        return postsCollection.find({}, options).toArray();
+    async getAllPosts (postsQueryObj: PostsQueryParams): Promise<PostItemsResponse> {
+        const { sortBy, sortDirection, pageNumber, pageSize} = postsQueryObj;
+        const direction = setDirection(sortDirection);
+        const totalCount = await postsCollection.countDocuments({});
+        const pagesCount = Math.ceil(totalCount / pageSize) || 1;
+        const posts = await (postsCollection
+            .find({}, options)
+            .sort({[sortBy]: direction})
+            .skip( pageNumber > 0 ? ( ( pageNumber - 1 ) * pageSize ) : 0 )
+            .limit( +pageSize )
+            .toArray());
+        
+        return {pagesCount, page: pageNumber || 1, pageSize: pageSize || 10, totalCount, items: posts};
     },
     async getPostById (id: string): Promise<PostItemType | null> {
         const post: PostItemType | null = await postsCollection.findOne({id}, options);
-        if (post) {
-            return post;
-        }
-        return null;
+        return post;
     },
-    async createPost (reqObj: RequestPostBody): Promise<RequestPostBody> {
-        const date = new Date();
-        const blog = await blogRepository.getBlogById(reqObj.blogId);
-        const newPost = {
-            ...reqObj,
-            createdAt: date.toJSON(),
-            blogName: blog?.name || '',
-            id: `${+(date)}`,
-        };
+    async createPost (newPost: PostItemType): Promise<PostItemType> {
         const result = await postsCollection.insertOne({...newPost});
         return newPost;
     },
@@ -45,28 +61,45 @@ export const postRepository = {
 };
 
 export const blogRepository = {
-    async getAllBlogs (): Promise<BlogItemType[]> {
-        return blogsCollection.find({}, options).toArray();
+    async getAllBlogs (blogsQueryObj: BlogsQueryParams): Promise<BlogItemsResponse> {
+        const { searchNameTerm, sortBy, sortDirection, pageNumber, pageSize} = blogsQueryObj;
+        const condition = searchNameTerm ? { name: {$regex : `${searchNameTerm}`, $options: 'i'}} : {};
+        const direction = setDirection(sortDirection);
+        const totalCount = await blogsCollection.countDocuments(condition);
+        const pagesCount = Math.ceil(totalCount / pageSize) || 1;
+        const blogs = await (blogsCollection
+            .find(condition, options)
+            .sort({[sortBy]: direction})
+            .skip( pageNumber > 0 ? ( ( pageNumber - 1 ) * pageSize ) : 0 )
+            .limit( +pageSize )
+            .toArray());
+        
+        return {pagesCount, page: pageNumber || 1, pageSize: pageSize || 10, totalCount, items: blogs};
+    },
+    async getPostsByBlogId (id: string, blogsQueryObj: PostsQueryParams): Promise<PostItemsResponse> {
+        const { sortBy, sortDirection, pageNumber, pageSize} = blogsQueryObj;
+        const condition = {blogId: id};
+        const direction = setDirection(sortDirection);
+        const totalCount = await postsCollection.countDocuments(condition);
+        const pagesCount = Math.ceil(totalCount / pageSize) || 1;
+        const blogs = await (postsCollection
+            .find(condition, options)
+            .sort({[sortBy]: direction})
+            .skip( pageNumber > 0 ? ( ( pageNumber - 1 ) * pageSize ) : 0 )
+            .limit( +pageSize )
+            .toArray());
+        
+        return {pagesCount, page: pageNumber || 1, pageSize: pageSize || 10, totalCount, items: blogs};
     },
     async getBlogById (id: string): Promise<BlogItemType | null> {
         const blog: BlogItemType | null = await blogsCollection.findOne({id}, options);
-        if (blog) {
-            return blog;
-        }
-        return null;
+        return blog;
     },
-    async createBlog (reqObj: RequestBody): Promise<RequestBody> {
-        const date = new Date();
-        const newBlog = {
-            ...reqObj,
-            createdAt: date.toJSON(),
-            isMembership: false,
-            id: `${+(date)}`,
-        };
+    async createBlog (newBlog: BlogItemType): Promise<BlogItemType> {
         const result = await blogsCollection.insertOne({...newBlog})
         return newBlog;
     },
-    async updatePost (id: string ,reqObj: RequestBody): Promise<boolean> {
+    async updateBlog (id: string ,reqObj: RequestBlogBody): Promise<boolean> {
         const result = await blogsCollection.updateOne({id}, {$set: reqObj})
         return result.matchedCount === 1;
     },
