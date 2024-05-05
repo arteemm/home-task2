@@ -29,7 +29,7 @@ export const postRepository = {
         const { sortBy, sortDirection, pageNumber, pageSize} = postsQueryObj;
         const direction = setDirection(sortDirection);
         const totalCount = await postsCollection.countDocuments({});
-        const pagesCount = Math.ceil(totalCount / pageSize) || 1;
+        const pagesCount = pageSize ?  Math.ceil(totalCount / pageSize) : Math.ceil(totalCount / 10);
         const posts = await (postsCollection
             .find({}, options)
             .sort({[sortBy]: direction})
@@ -37,7 +37,7 @@ export const postRepository = {
             .limit( +pageSize )
             .toArray());
         
-        return {pagesCount, page: pageNumber || 1, pageSize: pageSize || 10, totalCount, items: posts};
+        return {pagesCount: pagesCount || 1, page: pageNumber || 1, pageSize: pageSize || 10, totalCount, items: posts};
     },
     async getPostById (id: string): Promise<PostItemType | null> {
         const post: PostItemType | null = await postsCollection.findOne({id}, options);
@@ -66,7 +66,7 @@ export const blogRepository = {
         const condition = searchNameTerm ? { name: {$regex : `${searchNameTerm}`, $options: 'i'}} : {};
         const direction = setDirection(sortDirection);
         const totalCount = await blogsCollection.countDocuments(condition);
-        const pagesCount = Math.ceil(totalCount / pageSize) || 1;
+        const pagesCount = pageSize ?  Math.ceil(totalCount / pageSize) : Math.ceil(totalCount / 10);
         const blogs = await (blogsCollection
             .find(condition, options)
             .sort({[sortBy]: direction})
@@ -74,14 +74,14 @@ export const blogRepository = {
             .limit( +pageSize )
             .toArray());
         
-        return {pagesCount, page: pageNumber || 1, pageSize: pageSize || 10, totalCount, items: blogs};
+        return {pagesCount: pagesCount || 1, page: pageNumber || 1, pageSize: pageSize || 10, totalCount, items: blogs};
     },
     async getPostsByBlogId (id: string, blogsQueryObj: PostsQueryParams): Promise<PostItemsResponse> {
         const { sortBy, sortDirection, pageNumber, pageSize} = blogsQueryObj;
         const condition = {blogId: id};
         const direction = setDirection(sortDirection);
         const totalCount = await postsCollection.countDocuments(condition);
-        const pagesCount = Math.ceil(totalCount / pageSize) || 1;
+        const pagesCount = pageSize ?  Math.ceil(totalCount / pageSize) : Math.ceil(totalCount / 10);
         const blogs = await (postsCollection
             .find(condition, options)
             .sort({[sortBy]: direction})
@@ -89,7 +89,7 @@ export const blogRepository = {
             .limit( +pageSize )
             .toArray());
         
-        return {pagesCount, page: pageNumber || 1, pageSize: pageSize || 10, totalCount, items: blogs};
+        return {pagesCount: pagesCount || 1, page: pageNumber || 1, pageSize: pageSize || 10, totalCount, items: blogs};
     },
     async getBlogById (id: string): Promise<BlogItemType | null> {
         const blog: BlogItemType | null = await blogsCollection.findOne({id}, options);

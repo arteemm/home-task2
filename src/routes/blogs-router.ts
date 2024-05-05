@@ -85,7 +85,7 @@ blogsRouter.post('/:id/posts',
     const id = req.params.id;
     const blog = await blogsService.getBlogById(id);
     if (!blog) {
-      return res.status(404);
+      return res.send(404);
     }
 
     const result = myValidationResult(req);
