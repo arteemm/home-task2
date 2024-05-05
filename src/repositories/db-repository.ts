@@ -37,7 +37,7 @@ export const postRepository = {
             .limit( +pageSize )
             .toArray());
         
-        return {pagesCount: +pagesCount, page: pageNumber, pageSize: +pageSize, totalCount, items: posts};
+        return {pagesCount: +pagesCount, page: +pageNumber, pageSize: +pageSize, totalCount, items: posts};
     },
     async getPostById (id: string): Promise<PostItemType | null> {
         const post: PostItemType | null = await postsCollection.findOne({id}, options);
@@ -74,7 +74,7 @@ export const blogRepository = {
             .limit( +pageSize )
             .toArray());
         
-        return {pagesCount: +pagesCount, page: pageNumber, pageSize: +pageSize, totalCount, items: blogs};
+        return {pagesCount: +pagesCount, page: +pageNumber, pageSize: +pageSize, totalCount, items: blogs};
     },
     async getPostsByBlogId (id: string, blogsQueryObj: PostsQueryParams): Promise<PostItemsResponse> {
         const { sortBy = 'createdAt', sortDirection = 'desc', pageNumber = 1, pageSize = 10 } = blogsQueryObj;
@@ -89,7 +89,7 @@ export const blogRepository = {
             .limit( +pageSize )
             .toArray());
         
-        return {pagesCount: +pagesCount, page: pageNumber, pageSize: +pageSize, totalCount, items: blogs};
+        return {pagesCount: +pagesCount, page: +pageNumber, pageSize: +pageSize, totalCount, items: blogs};
     },
     async getBlogById (id: string): Promise<BlogItemType | null> {
         const blog: BlogItemType | null = await blogsCollection.findOne({id}, options);
