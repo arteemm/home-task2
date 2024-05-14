@@ -1,3 +1,5 @@
+import { ObjectId } from 'mongodb';
+
 export type BlogItemType = {
   id: string;
   name: string;
@@ -46,7 +48,7 @@ export type RequestPostBody = {
     blogId: string;
 };
 
-export type BlogsQueryParams ={
+export type BlogsQueryParams = {
   searchNameTerm: string;
   sortBy: string;
   sortDirection: 'asc' | 'desc';
@@ -54,9 +56,48 @@ export type BlogsQueryParams ={
   pageSize: number;
 };
 
-export type PostsQueryParams ={
+export type PostsQueryParams = {
   sortBy: string;
   sortDirection: 'asc' | 'desc';
   pageNumber: number;
   pageSize: number;
+};
+
+export type UserQueryType = {
+  login: string;
+  password: string;
+  email: string;
+};
+
+export type UserType = {
+  _id: ObjectId;
+  login: string;
+  email: string;
+  createdAt: string;
+  userSalt: string;
+  userHash: string;
+};
+
+export type UserResponseType = {
+  id: string;
+  login: string;
+  email: string;
+  createdAt: string;
+};
+
+export type UsersQueryParams = {
+  sortBy: string;
+  sortDirection: 'asc' | 'desc';
+  pageNumber: number;
+  pageSize: number;
+  searchLoginTerm: string | null;
+  searchEmailTerm: string | null;
+};
+
+export type UserItemsResponse = {
+  pagesCount: number;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  items: UserType [];
 };
