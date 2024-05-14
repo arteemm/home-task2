@@ -9,12 +9,12 @@ const myValidationResult: ResultFactory<{}> = validationResult.withDefaults({
   });
   
 
-authRouter.post('/login',
-    body(['login', 'password', 'email']).isString().trim().notEmpty(),
+authRouter.post('/',
+    body(['loginOrEmail', 'password']).isString().trim().notEmpty(),
     async(req: Request, res: Response) =>{
         const result = myValidationResult(req);
         if (result.isEmpty()) {
-            const checkResult = await usersService.checkCredentials(req.body.email, req.body.password);
+            const checkResult = await usersService.checkCredentials(req.body.loginOrEmail, req.body.password);
 
             if (!checkResult) {
                 return res.send(401)
