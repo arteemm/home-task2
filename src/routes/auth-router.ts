@@ -9,7 +9,7 @@ const myValidationResult: ResultFactory<{}> = validationResult.withDefaults({
   });
   
 
-authRouter.post('/',
+authRouter.post('/login',
     body(['loginOrEmail', 'password']).isString().trim().notEmpty(),
     async(req: Request, res: Response) =>{
         const result = myValidationResult(req);

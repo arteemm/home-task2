@@ -23,7 +23,7 @@ app.use('/blogs', blogsRouter);
 app.use('/posts', postsRouter);
 app.use('/testing', testingRouter);
 app.use('/users', usersRouter);
-app.use('/login', authRouter);
+app.use('/auth', authRouter);
 
 const startApp = async () => {
   await runDb();
