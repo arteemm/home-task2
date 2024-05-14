@@ -30,7 +30,7 @@ export const userRepository = {
         const result = await usersCollection.insertOne(newUser);
         return newUser._id
     },
-    async deleteUser (id: string): Promise<boolean> {
+    async deleteUser (id: ObjectId): Promise<boolean> {
         const idO = new ObjectId(id);
         const result = await usersCollection.deleteOne({ _id: idO });
 

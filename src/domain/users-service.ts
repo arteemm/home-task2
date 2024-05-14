@@ -25,7 +25,7 @@ export const usersService = {
 
         return await userRepository.createUser(newUser);
     },
-    async deleteUser (id: string): Promise<boolean> {
+    async deleteUser (id: ObjectId): Promise<boolean> {
         return await userRepository.deleteUser(id);
     },
     async deleteAllData () {

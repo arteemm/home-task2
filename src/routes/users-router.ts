@@ -3,6 +3,7 @@ import { usersService } from '../domain/users-service';
 import { usersQueryRepository } from '../repositories/users-query-repository';
 import { body, validationResult, ResultFactory } from 'express-validator';
 import { UsersQueryParams, UserQueryType } from '../types';
+import { ObjectId } from 'mongodb';
 
 export const usersRouter = Router({});
 
@@ -57,8 +58,13 @@ usersRouter.post('/',
 
 usersRouter.delete('/:id',
   validationAuth,
-  async (req: Request<{id: string}, {}, UserQueryType, UsersQueryParams>, res: Response) => {
+  async (req: Request<{id: ObjectId}, {}, UserQueryType, UsersQueryParams>, res: Response) => {
     const id = req.params.id;
+    if (!ObjectId.isValid(id)) {
+      res.send(404);
+      return;
+    }
+
     const result = await usersService.deleteUser(id);
 
     if (!result) {
