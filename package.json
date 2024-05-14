@@ -6,6 +6,8 @@
   "author": "arteemm <arteemmarteemm@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "express": "^4.19.2",
     "express-validator": "^7.0.1",
