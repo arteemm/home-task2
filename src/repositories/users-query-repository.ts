@@ -21,9 +21,9 @@ const setDirection = (sortDirection: 'asc' | 'desc') => {
 
 const getCondition = (searchLoginTerm: string | null, searchEmailTerm: string | null) => {
     if (searchLoginTerm && searchEmailTerm) {
-        return { $and: [
-            {login: {$regex : `${searchLoginTerm}`, $options: 'i'}},
-            { email: {$regex : `${searchEmailTerm}`, $options: 'i'}}
+        return { $or: [
+            { login: {$regex : `${searchLoginTerm}`, $options: 'i'} },
+            { email: {$regex : `${searchEmailTerm}`, $options: 'i'} }
         ]};
     }
     if (searchLoginTerm) {
