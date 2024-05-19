@@ -1,12 +1,12 @@
 import { userRepository } from '../repositories/users-repository';
-import { UserQueryType, UserType } from '../types';
+import { UserQueryType, UserType, UserResponseType } from '../types';
 import { ObjectId } from 'mongodb';
 import bcrypt from 'bcryptjs';
 
 export const usersService = {
 
-    async getUserById (_id: ObjectId): Promise<UserType | null> {
-        const user: UserType | null = await userRepository.getUserById(_id);
+    async getUserById (_id: ObjectId): Promise<UserResponseType | null> {
+        const user: UserResponseType | null = await userRepository.getUserById(_id);
         return user;
     },
     async createUser (reqObj: UserQueryType): Promise<ObjectId> {
@@ -35,13 +35,13 @@ export const usersService = {
         const userHash = await bcrypt.hash(password, salt);
         return userHash;
     },
-    async checkCredentials (loginOrEmail: string, password: string) {
+    async checkCredentials (loginOrEmail: string, password: string): Promise<UserType | null> {
         const user: UserType | null = await userRepository.findByLoginOrEmail(loginOrEmail);
-        if (!user) return false;
+        if (!user) return null;
         const passwordHash = await this.getUserHash(password, user.userSalt);
         if (user.userHash !== passwordHash) {
-            return false;
+            return null;
         }
-        return true;
+        return user;
     }
 };
