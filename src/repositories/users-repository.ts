@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { UserType } from '../types';
+import { UserType, UserResponseType } from '../types';
 import { usersCollection } from './db';
 
 const options = {
@@ -22,8 +22,8 @@ const setDirection = (sortDirection: 'asc' | 'desc') => {
 
 export const userRepository = {
 
-    async getUserById (_id: ObjectId): Promise<UserType | null> {
-        const user: UserType | null = await usersCollection.findOne({_id}, options);
+    async getUserById (_id: ObjectId): Promise<UserResponseType | null > {
+        const user = await usersCollection.findOne({_id}, options) as UserResponseType | null;
         return user;
     },
     async createUser (newUser: UserType): Promise<ObjectId> {
