@@ -2,6 +2,9 @@ import { userRepository } from '../repositories/users-repository';
 import { UserQueryType, UserType, UserResponseType } from '../types';
 import { ObjectId } from 'mongodb';
 import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
+import { add } from 'date-fns';
+
 
 export const usersService = {
 
@@ -11,16 +14,24 @@ export const usersService = {
     },
     async createUser (reqObj: UserQueryType): Promise<ObjectId> {
         const salt = await bcrypt.genSalt(10);
-        const userHash = await this.getUserHash(reqObj.password, salt);
-        const date = new Date();
-
-        const newUser: UserType = {
+        const passwordHash = await this.getUserHash(reqObj.password, salt)
+        const newUser = {
             _id: new ObjectId(),
-            login: reqObj.login,
-            email: reqObj.email,
-            createdAt: date.toJSON(),
-            userSalt: salt,
-            userHash,
+            accountData: {
+                userName: reqObj.login,
+                email: reqObj.email,
+                passwordHash,
+                salt,
+                createdAt: new Date(),
+            },
+            emailConfirmation: {
+                confirmationCode: uuidv4(),
+                expirationDate: add(new Date(), {
+                    hours: 1,
+                    minutes: 3,
+                }),
+                isConfirmed: false,
+            }
         };
 
         return await userRepository.createUser(newUser);
@@ -38,8 +49,8 @@ export const usersService = {
     async checkCredentials (loginOrEmail: string, password: string): Promise<UserType | null> {
         const user: UserType | null = await userRepository.findByLoginOrEmail(loginOrEmail);
         if (!user) return null;
-        const passwordHash = await this.getUserHash(password, user.userSalt);
-        if (user.userHash !== passwordHash) {
+        const passwordHash = await this.getUserHash(password, user.accountData.salt);
+        if (user.accountData.passwordHash !== passwordHash) {
             return null;
         }
         return user;
