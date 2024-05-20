@@ -59,4 +59,18 @@ export const usersQueryRepository = {
         
         return {pagesCount: +pagesCount, page: +pageNumber, pageSize: +pageSize, totalCount, items: users};
     },
+
+    async checkEmail (email: string) {
+        if (await usersCollection.findOne({'accountData.email': email})) {
+            return false;
+        }
+        return true;
+    },
+
+    async checkLogin (login: string) {
+        if (await usersCollection.findOne({'accountData.userName': login})) {
+            return false;
+        }
+        return true;
+    }
 };

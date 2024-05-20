@@ -71,11 +71,18 @@ export type UserQueryType = {
 
 export type UserType = {
   _id: ObjectId;
-  login: string;
-  email: string;
-  createdAt: string;
-  userSalt: string;
-  userHash: string;
+  accountData: {
+    userName: string;
+    email: string;
+    passwordHash: string;
+    salt: string;
+    createdAt: Date;
+  };
+  emailConfirmation: {
+    confirmationCode: string;
+    expirationDate: Date;
+    isConfirmed: boolean;
+  }
 };
 
 export type UserResponseType = {

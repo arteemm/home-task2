@@ -26,6 +26,10 @@ export const userRepository = {
         const user = await usersCollection.findOne({_id}, options) as UserResponseType | null;
         return user;
     },
+    async getFullUserById (_id: ObjectId): Promise<UserType | null > {
+        const user = await usersCollection.findOne({_id});
+        return user;
+    },
     async createUser (newUser: UserType): Promise<ObjectId> {
         const result = await usersCollection.insertOne(newUser);
         return newUser._id
