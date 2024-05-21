@@ -81,7 +81,7 @@ authRouter.post('/registration',
 );
 
 
-authRouter.post('/registration-confirmation',
+authRouter.post('/registration-email-resending',
 body('email').isString().trim().notEmpty(),
 body('email').isLength({min: 3, max:1000}).matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('lal'),
 body('email').custom(async value => {
@@ -93,6 +93,23 @@ body('email').custom(async value => {
     async (req: Request, res: Response) => {
         const result = myValidationResult(req);
         if (result.isEmpty()) {
+            return res.send(204);
+        }
+        return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
+    }
+);
+
+authRouter.post('/registration-confirmation',
+    body('code').isString().trim().notEmpty(),
+    async (req: Request, res: Response) => {
+        const result = myValidationResult(req);
+        if (result.isEmpty()) {
+            const result = await authService.confirmEmail(req.body.code);
+
+            if (!result) {
+                return res.send(400);
+            }
+
             return res.send(204);
         }
         return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });

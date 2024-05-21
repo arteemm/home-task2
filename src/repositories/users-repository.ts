@@ -6,18 +6,10 @@ const options = {
     projection: {
         _id: 0,
         id: '$_id',
-        login: 1,
-        email: 1,
-        createdAt: 1,
+        email: '$accountData.email',
+        login: '$accountData.userName',
+        createdAt: '$accountData.createdAt'
     }
-};
-
-const setDirection = (sortDirection: 'asc' | 'desc') => {
-    if (sortDirection === 'asc') {
-        return 1;
-    }
-    
-    return -1;
 };
 
 export const userRepository = {
@@ -44,7 +36,18 @@ export const userRepository = {
         await usersCollection.deleteMany({});
     },
     async findByLoginOrEmail (loginOrEmail: string) {
-        const user = await usersCollection.findOne({$or: [ { email: loginOrEmail }, { login: loginOrEmail }]});
+        const user = await usersCollection.findOne({$or: [ { 'accountData.email': loginOrEmail }, { 'accountData.userName': loginOrEmail }]});
         return user;
-    }
+    },
+
+    async findUserByCode(code: string) {
+        const user = await usersCollection.findOne({'emailConfirmation.confirmationCode': code});
+        return user;
+    },
+
+    async updateConfirmation(_id: ObjectId) {
+        const result = await usersCollection.updateOne({ _id }, {$set: {'emailConfirmation.isConfirmed': true}});
+
+        return result.matchedCount === 1;
+    },
 };

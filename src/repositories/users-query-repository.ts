@@ -72,5 +72,13 @@ export const usersQueryRepository = {
             return false;
         }
         return true;
+    },
+
+    async checkConfirmEmail(email: string) {
+        const user = await usersCollection.findOne({'accountData.email': email});
+        if (user?.emailConfirmation.isConfirmed) {
+            return true;
+        }
+        return false;
     }
 };
