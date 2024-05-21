@@ -26,6 +26,26 @@ export const authService = {
         const userHash = await bcrypt.hash(password, salt);
         return userHash;
     },
+    async confirmEmail(code: string) {
+        const user = await userRepository.findUserByCode(code);
+        if (!user) return false;
+
+        const result = await userRepository.updateConfirmation(user._id);
+        return result;
+    },
+
+    async ResendingEmail(email: string) {
+        const user = await userRepository.findByLoginOrEmail(email);
+
+        const message = `
+            <h1>Thank for your registration</h1>
+            <p>To finish registration please follow the link below:
+                <a href='https://somesite.com/confirm-email?code=${user?.emailConfirmation.confirmationCode}'>complete registration</a>
+            </p>
+        `;
+        const subject = 'confirm message';
+        await emailAdapter.sendEmail(email, subject, message);
+    }
     // async getCommentById (id: string): Promise<CommentResponseType | null> {
     //     const commentId = new ObjectId(id);
     //     const comment: CommentResponseType | null = await feedbacksRepository.getCommentById(commentId);
