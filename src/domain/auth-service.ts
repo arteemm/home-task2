@@ -41,7 +41,7 @@ export const authService = {
     },
 
     async resendingEmail(email: string) {
-            await usersService.setNewConfirmationCode(email);
+            // await usersService.setNewConfirmationCode(email);
             const user = await userRepository.findByLoginOrEmail(email);
             const message = `
                 <h1>Thank for your registration</h1>
