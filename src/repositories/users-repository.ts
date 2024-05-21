@@ -50,4 +50,10 @@ export const userRepository = {
 
         return result.matchedCount === 1;
     },
+
+    async updateConfirmationCode(email: string, confirmationCode: string) {
+        const result = await usersCollection.updateOne({'accountData.email':  email}, {$set: {'emailConfirmation.confirmationCode': confirmationCode}});
+
+        return result.matchedCount === 1;
+    },
 };
