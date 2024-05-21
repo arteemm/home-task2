@@ -26,6 +26,12 @@ export const authService = {
         const userHash = await bcrypt.hash(password, salt);
         return userHash;
     },
+
+    async findUserEmailByCode(code: string) {
+        const user = await userRepository.findUserByCode(code);
+        return user?.accountData.email;
+    },
+
     async confirmEmail(code: string) {
         const user = await userRepository.findUserByCode(code);
         if (!user) return false;
