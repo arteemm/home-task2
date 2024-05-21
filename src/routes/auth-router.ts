@@ -93,7 +93,7 @@ body('email').custom(async value => {
     async (req: Request, res: Response) => {
         const result = myValidationResult(req);
         if (result.isEmpty()) {
-            const result = await authService.ResendingEmail(req.body.email);
+            const result = await authService.resendingEmail(req.body.email);
             return res.send(204);
         }
         return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
@@ -115,7 +115,7 @@ authRouter.post('/registration-confirmation',
             const result = await authService.confirmEmail(req.body.code);
 
             if (!result) {
-                return res.status(400).send({ errorsMessages: { message: 'Invalid confirmation code', field: 'code' } });
+                return res.status(400).send({ errorsMessages: [{ message: 'Invalid confirmation code', field: 'code' }] });
             }
 
             return res.send(204);
