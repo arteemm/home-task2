@@ -58,7 +58,6 @@ authRouter.post('/registration',
     body('login').isLength({min: 3, max:10}).matches(/^[a-zA-Z0-9_-]*$/).withMessage('lal'),
     body('email').isLength({min: 3, max:1000}).matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('lal'),
     body('login').custom(async value => {
-        // const isUniqueEmail = await usersQueryRepository.checkEmail(value);
         const isUniqueLogin = await usersQueryRepository.checkLogin(value);
           if (!isUniqueLogin) {
             throw new Error('login must be unique');
@@ -86,13 +85,15 @@ body('email').isString().trim().notEmpty(),
 body('email').isLength({min: 3, max:1000}).matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('lal'),
 body('email').custom(async value => {
     const isUniqueEmail = await usersQueryRepository.checkEmail(value);
-      if (isUniqueEmail) {
-        throw new Error('email has not found');
+    const isConfirmed = await usersQueryRepository.checkConfirmEmail(value);
+      if (isUniqueEmail || isConfirmed) {
+        throw new Error('email has not found or if email is already confirmed');
       }
   }),
     async (req: Request, res: Response) => {
         const result = myValidationResult(req);
         if (result.isEmpty()) {
+            const result = await authService.ResendingEmail(req.body.email);
             return res.send(204);
         }
         return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
@@ -101,13 +102,20 @@ body('email').custom(async value => {
 
 authRouter.post('/registration-confirmation',
     body('code').isString().trim().notEmpty(),
+    body('code').custom(async value => {
+        const email = await authService.findUserEmailByCode(value) || '';
+        const isConfirmed = await usersQueryRepository.checkConfirmEmail(email);
+          if (isConfirmed) {
+            throw new Error('email is already confirmed');
+          }
+      }),
     async (req: Request, res: Response) => {
         const result = myValidationResult(req);
         if (result.isEmpty()) {
             const result = await authService.confirmEmail(req.body.code);
 
             if (!result) {
-                return res.send(400);
+                return res.status(400).send({ errorsMessages: { message: 'Invalid confirmation code', field: 'code' } });
             }
 
             return res.send(204);
