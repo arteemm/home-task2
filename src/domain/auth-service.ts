@@ -41,12 +41,12 @@ export const authService = {
     },
 
     async resendingEmail(email: string) {
-            // await usersService.setNewConfirmationCode(email);
+            const newCode = await usersService.setNewConfirmationCode(email);
             const user = await userRepository.findByLoginOrEmail(email);
             const message = `
                 <h1>Thank for your registration</h1>
                 <p>To finish registration please follow the link below:
-                    <a href='https://somesite.com/confirm-email?code=${user?.emailConfirmation.confirmationCode}'>complete registration</a>
+                    <a href='https://somesite.com/confirm-email?code=${newCode}'>complete registration</a>
                 </p>
             `;
             const subject = 'confirm message';
