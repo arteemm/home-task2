@@ -76,7 +76,7 @@ export const usersQueryRepository = {
 
     async checkConfirmEmail(email: string) {
         const user = await usersCollection.findOne({'accountData.email': email});
-        if (user?.emailConfirmation.isConfirmed) {
+        if (!user || user.emailConfirmation.isConfirmed) {
             return true;
         }
         return false;
