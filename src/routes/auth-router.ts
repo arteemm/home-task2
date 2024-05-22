@@ -83,17 +83,17 @@ authRouter.post('/registration',
 authRouter.post('/registration-email-resending',
 body('email').isString().trim().notEmpty(),
 body('email').isLength({min: 3, max:1000}).matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('lal'),
-body('email').custom(async value => {
-    const isUniqueEmail = await usersQueryRepository.checkEmail(value);
-    const isConfirmed = await usersQueryRepository.checkConfirmEmail(value);
-      if (isUniqueEmail || isConfirmed) {
-        throw new Error('email has not found or if email is already confirmed');
-      }
-  }),
+// body('email').custom(async value => {
+//     const isConfirmed = await usersQueryRepository.checkConfirmEmail(value);
+//       if (isConfirmed) {
+//         throw new Error('email has not found or if email is already confirmed');
+//       }
+//   }),
     async (req: Request, res: Response) => {
         const result = myValidationResult(req);
         if (result.isEmpty()) {
             const result = await authService.resendingEmail(req.body.email);
+            if (!result) return res.status(400).send({ errorsMessages: [{ message: 'Invalid confirmation code', field: 'email' }] });
             return res.send(204);
         }
         return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
