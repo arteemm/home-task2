@@ -1,6 +1,3 @@
-import { feedbacksRepository } from '../repositories/feedbacks-repository';
-import { CommentRequestType, CommentType, CommentResponseType } from '../types';
-import { ObjectId } from 'mongodb';
 import bcrypt from 'bcryptjs';
 import { usersService } from './users-service';
 
@@ -35,69 +32,24 @@ export const authService = {
     async confirmEmail(code: string) {
         const user = await userRepository.findUserByCode(code);
         if (!user) return false;
+        if(user.emailConfirmation.isConfirmed) return false;
 
         const result = await userRepository.updateConfirmation(user._id);
         return result;
     },
 
     async resendingEmail(email: string) {
-            // const newCode = await usersService.setNewConfirmationCode(email);
+            await usersService.setNewConfirmationCode(email);
             const user = await userRepository.findByLoginOrEmail(email);
             if(!user || user.emailConfirmation.isConfirmed) return false;
             const message = `
                 <h1>Thank for your registration</h1>
                 <p>To finish registration please follow the link below:
-                    <a href='https://somesite.com/confirm-email?code=${user.emailConfirmation.confirmationCode}'>compete registration</a>
+                    <a href='https://somesite.com/confirm-email?code=${user.emailConfirmation.confirmationCode}'>Try to complete registration</a>
                 </p>
             `;
-            const subject = 'cofirm message';
+            const subject = 'confirm message again';
             await emailAdapter.sendEmail(email, subject, message);
             return true;
     }
-    // async getCommentById (id: string): Promise<CommentResponseType | null> {
-    //     const commentId = new ObjectId(id);
-    //     const comment: CommentResponseType | null = await feedbacksRepository.getCommentById(commentId);
-    //     return comment;
-    // },
-    // async createComment (reqObj: CommentRequestType, userId: string, postId: string): Promise<CommentResponseType | null> {
-    //     const date = new Date();
-    //     const id = new ObjectId(userId);
-    //     const user = await usersService.getUserById(id);
-
-    //     const newComment: CommentType = {
-    //         _id: new ObjectId(),
-    //         content: reqObj.content,
-    //         createdAt: date.toJSON(),
-    //         commentatorInfo: {
-    //             userId: user!.id,
-    //             userLogin: user!.login,
-    //         },
-    //         postId,
-    //     };
-
-    //     const commentId =  await feedbacksRepository.createComment(newComment);
-    //     return await feedbacksRepository.getCommentById(commentId);
-    // },
-    // async deleteComment (id: string): Promise<boolean> {
-    //     const commentId = new ObjectId(id);
-    //     return await feedbacksRepository.deleteComment(commentId);
-        
-    // },
-    // async deleteAllData () {
-    //     return await feedbacksRepository.deleteAllData();
-    // },
-    // async updateComment (reqObj: CommentRequestType, id: string):Promise<boolean> {
-    //     const _id = new ObjectId(id);
-    //     const isUpdated = await feedbacksRepository.updateComment(reqObj, _id);
-    //     return isUpdated;
-    // },
-    // async checkOwnerComment (userIOwnerId: string, userId: string): Promise<boolean> {
-    //     const userObjId = new ObjectId(userId);
-
-    //     if (userObjId.equals(userIOwnerId)) {
-    //         return true;
-    //     }
-
-    //     return false;
-    // }
 };
