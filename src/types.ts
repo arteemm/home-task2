@@ -82,7 +82,8 @@ export type UserType = {
     confirmationCode: string;
     expirationDate: Date;
     isConfirmed: boolean;
-  }
+  };
+  usedTokens: string[];
 };
 
 export type UserResponseType = {

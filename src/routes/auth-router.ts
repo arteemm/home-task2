@@ -25,13 +25,14 @@ authRouter.post('/login',
                 return res.send(401)
             }
 
-            const token = await jwtService.createJWT(user);
+            const {token, refreshToken} = await jwtService.createJWT(user._id);
+            res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true })
             return res.status(200).send({accessToken: token});
         }
 
         return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
     }
-)
+);
 
 authRouter.get('/me',
     authMiddleware,
@@ -50,7 +51,7 @@ authRouter.get('/me',
 
         return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
     }
-)
+);
 
 authRouter.post('/registration',
     body(['login', 'password', 'email']).isString().trim().notEmpty(),
@@ -109,4 +110,43 @@ authRouter.post('/registration-confirmation',
         }
         return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
     }
-)
+);
+
+authRouter.post('/refresh-token',
+    async (req: Request, res: Response) => {
+        const result = myValidationResult(req);
+        if (result.isEmpty()) {
+            const refreshToken = req.cookies.refreshToken as string;
+            if (!refreshToken) {
+                return res.send(401);
+            }
+
+            const result = await jwtService.setNewToken(refreshToken);
+
+            if (!result) {
+                return res.status(400).send({ errorsMessages: [{ message: 'Invalid confirmation code', field: 'code' }] });
+            }
+
+            return res.status(200).send({accessToken: result.token});
+        }
+        return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
+    }
+);
+
+authRouter.post('/logout',
+    authMiddleware,
+    async (req: Request, res: Response) => {
+        const result = myValidationResult(req);
+        if (result.isEmpty()) {
+            const refreshToken = req.cookies.refreshToken as string;
+            if (!refreshToken) {
+                return res.send(401);
+            }
+            const userId = new ObjectId(req.body.userId);
+            const result = await jwtService.setTokenInvalid(userId, refreshToken);
+
+            return res.send(204);
+        }
+        return res.status(400).send({ errorsMessages: result.array({ onlyFirstError: true }) });
+    }
+);

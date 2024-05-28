@@ -8,6 +8,7 @@ import { authRouter } from './routes/auth-router';
 import { feedbackRouter } from './routes/feedback-router';
 import dotenv from 'dotenv';
 import { runDb } from './repositories/db';
+import cookieParser from 'cookie-parser';
 
 dotenv.config()
 
@@ -19,6 +20,7 @@ const port = process.env.PORT || 3000;
 
 const parserMiddleware = bodyParser();
 app.use(parserMiddleware);
+app.use(cookieParser())
 
 app.use('/blogs', blogsRouter);
 app.use('/posts', postsRouter);

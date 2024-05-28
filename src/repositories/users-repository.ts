@@ -56,4 +56,8 @@ export const userRepository = {
 
         return result.matchedCount === 1;
     },
+
+    async addTokenToUsedList(userId: ObjectId, refreshToken: string) {
+        usersCollection.updateOne({_id: userId}, {$push: {usedTokens: refreshToken}});
+    },
 };

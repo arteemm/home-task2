@@ -1,5 +1,7 @@
+import { check } from 'express-validator';
 import { UsersQueryParams, UserItemsResponse } from '../types';
 import { usersCollection } from './db';
+import { ObjectId } from 'mongodb';
 
 const options = {
     projection: {
@@ -80,5 +82,10 @@ export const usersQueryRepository = {
             return true;
         }
         return false;
-    }
+    },
+
+    async checkRefreshToken(userId: ObjectId, refreshToken: string) {
+        const token = await usersCollection.findOne({$and : [{_id: userId}, {usedTokens: refreshToken}]});
+        return token ? true : false;
+    },
 };

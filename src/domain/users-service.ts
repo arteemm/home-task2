@@ -58,5 +58,5 @@ export const usersService = {
     async setNewConfirmationCode(email: string) {
         const confirmationCode = uuidv4();
         return await userRepository.updateConfirmationCode(email, confirmationCode);
-    }
+    },
 };
