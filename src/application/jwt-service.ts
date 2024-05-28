@@ -1,13 +1,19 @@
 import { ObjectId } from 'mongodb';
 import jwt from 'jsonwebtoken';
 import { settings } from '../settings';
-import { UserType  } from '../types';
+import { usersQueryRepository } from '../repositories/users-query-repository';
+import { userRepository } from '../repositories/users-repository';
 
 export const jwtService = {
-    async createJWT(user: UserType ) {
-        const token = jwt.sign({userId: user._id}, settings.JWT_SECRET, {expiresIn: '1h'});
-        return token;
+    async createJWT(id: ObjectId ) {
+        const token = jwt.sign({userId: id}, settings.JWT_SECRET, {expiresIn: '1h'});
+        const refreshToken = jwt.sign({userId: id}, settings.JWT_SECRET, {expiresIn: '10000'});
+        return {
+            token,
+            refreshToken,
+        };
     },
+
     async getUserByToken(token: string) {
         try {
             const result: any = jwt.verify(token, settings.JWT_SECRET);
@@ -15,5 +21,32 @@ export const jwtService = {
         } catch(error) {
             return null;
         }
-    }
+    },
+
+    verifyExpiration (token: string) {
+        const isExpired = jwt.verify(token, settings.JWT_SECRET, (err) => {
+            if(err) {
+                return true;
+            }
+            return false;
+        });
+
+        return Boolean(isExpired);
+    },
+
+    async setTokenInvalid(userId: ObjectId, currentRefreshToken: string) {
+        await userRepository.addTokenToUsedList(userId, currentRefreshToken);
+    },
+
+    async setNewToken(currentRefreshToken: string) {
+        const isExpired = this.verifyExpiration(currentRefreshToken);
+        if (isExpired) return false;
+        const userId = await this.getUserByToken(currentRefreshToken);
+        if(!userId) return false;
+        const iskUsedToken = await usersQueryRepository.checkRefreshToken(userId, currentRefreshToken);
+        if (iskUsedToken) return false;
+        await this.setTokenInvalid(userId, currentRefreshToken);
+        const {token, refreshToken} = await this.createJWT(userId);
+        return {token, refreshToken};
+    },
 };
