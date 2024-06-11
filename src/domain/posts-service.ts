@@ -1,6 +1,6 @@
-import { postRepository } from '../repositories/db-repository';
-import { PostItemType, RequestPostBody, PostItemsResponse,PostsQueryParams } from '../types';
-import { blogRepository } from '../repositories/db-repository';
+import { postRepository } from '../repositories/posts-repository';
+import { PostItemType, RequestPostBody, PostItemsResponse,PostsQueryParams } from '../types/postsTypes';
+import { blogRepository } from '../repositories/blogs-repository';
 
 export const postsService = {
 

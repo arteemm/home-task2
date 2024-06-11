@@ -1,5 +1,5 @@
 import { feedbacksRepository } from '../repositories/feedbacks-repository';
-import { CommentRequestType, CommentType, CommentResponseType } from '../types';
+import { CommentRequestType, CommentType, CommentResponseType } from '../types/commentsTypes';
 import { ObjectId } from 'mongodb';
 import { usersService } from './users-service';
 

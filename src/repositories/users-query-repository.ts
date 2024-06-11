@@ -1,5 +1,4 @@
-import { check } from 'express-validator';
-import { UsersQueryParams, UserItemsResponse } from '../types';
+import { UsersQueryParams, UserItemsResponse } from '../types/usersTypes';
 import { usersCollection } from './db';
 import { ObjectId } from 'mongodb';
 
@@ -7,9 +6,9 @@ const options = {
     projection: {
         _id: 0,
         id: '$_id',
-        login: 1,
-        email: 1,
-        createdAt: 1,
+        email: '$accountData.email',
+        login: '$accountData.userName',
+        createdAt: '$accountData.createdAt'
     }
 };
 

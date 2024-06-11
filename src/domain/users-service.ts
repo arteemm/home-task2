@@ -1,5 +1,5 @@
 import { userRepository } from '../repositories/users-repository';
-import { UserQueryType, UserType, UserResponseType } from '../types';
+import { UserQueryType, UserType, UserResponseType } from '../types/usersTypes';
 import { ObjectId } from 'mongodb';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
@@ -31,7 +31,8 @@ export const usersService = {
                     minutes: 3,
                 }),
                 isConfirmed: false,
-            }
+            },
+            usedTokens: [],
         };
 
         return await userRepository.createUser(newUser);
