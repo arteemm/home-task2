@@ -3,7 +3,7 @@ import { usersService } from './users-service';
 
 import { userRepository } from '../repositories/users-repository';
 import { emailAdapter } from '../adapters/email-adapter';
-import { UserQueryType } from '../types';
+import { UserQueryType } from '../types/usersTypes';
 
 
 export const authService = {

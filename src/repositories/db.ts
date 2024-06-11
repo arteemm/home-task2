@@ -1,5 +1,8 @@
-import { Collection, MongoClient } from 'mongodb';
-import { BlogItemType, PostItemType, CommentType, UserType } from '../types';
+import { MongoClient } from 'mongodb';
+import { BlogItemType } from '../types/blogsTypes';
+import { PostItemType } from '../types/postsTypes';
+import { UserType } from '../types/usersTypes';
+import { CommentType } from '../types/commentsTypes';
 import * as dotenv from 'dotenv';
 
 dotenv.config();

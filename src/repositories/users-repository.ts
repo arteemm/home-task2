@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import { UserType, UserResponseType } from '../types';
+import { UserType, UserResponseType } from '../types/usersTypes';
 import { usersCollection } from './db';
 
 const options = {

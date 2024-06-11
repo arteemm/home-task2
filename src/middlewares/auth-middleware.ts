@@ -1,6 +1,7 @@
 import { NextFunction, Response, Request } from 'express';
 import { jwtService } from '../application/jwt-service';
 import { usersService } from '../domain/users-service';
+import { STATUS_CODES } from '../constants/statusCodes';
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(' ')[1];
@@ -21,5 +22,5 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
     
 
-    return res.send(401);
+    return res.send(STATUS_CODES.UNAUTHORIZED);
 };
