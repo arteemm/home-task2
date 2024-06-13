@@ -6,8 +6,8 @@ import { userRepository } from '../repositories/users-repository';
 
 export const jwtService = {
     async createJWT(id: ObjectId ) {
-        const token = jwt.sign({userId: id}, settings.JWT_SECRET, {expiresIn: '10000'});
-        const refreshToken = jwt.sign({userId: id}, settings.JWT_SECRET, {expiresIn: '20000'});
+        const token = jwt.sign({userId: id, date: Date.now()}, settings.JWT_SECRET, { expiresIn: '10000'});
+        const refreshToken = jwt.sign({userId: id, date: Date.now()}, settings.JWT_SECRET, {expiresIn: '20000'});
         return {
             token,
             refreshToken,
@@ -36,6 +36,12 @@ export const jwtService = {
 
     async setTokenInvalid(userId: ObjectId, currentRefreshToken: string) {
         await userRepository.addTokenToUsedList(userId, currentRefreshToken);
+    },
+
+    async checkTokenValid(userId: ObjectId, refreshToken: string) {
+        const iskUsedToken = await usersQueryRepository.checkRefreshToken(userId, refreshToken);
+        if (iskUsedToken) return false;
+        return true;
     },
 
     async setNewToken(currentRefreshToken: string) {

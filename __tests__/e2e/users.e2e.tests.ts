@@ -105,5 +105,17 @@ describe(ROUTERS_PATH_ENUM.USERS, () => {
         expect(accessToken).toEqual({accessToken: expect.any(String)});
         expect(refreshToken).toEqual(expect.any(String));
     });
+
+
+    it('- Shouldn\'t logout user with incorrect refreshToken', async () => {
+        const loginUser = await usersTestsUtils.logoutUser('sssssss', STATUS_CODES.UNAUTHORIZED);
+        expect(loginUser.body).toEqual({});
+    });
+
+    it('-  "/auth/logout": should make the refresh token invalid', async () => {
+        const loginUser = await usersTestsUtils.logoutUser(refreshToken, STATUS_CODES.SUCCESS_NO_CONTENT);
+        const checkRefreshToken = await usersTestsUtils.logoutUser(refreshToken, STATUS_CODES.UNAUTHORIZED);
+        expect(checkRefreshToken.body).toEqual({});
+    });
  
 });

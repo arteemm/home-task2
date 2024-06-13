@@ -95,12 +95,8 @@ authRouter.post('/registration-confirmation',
 );
 
 authRouter.post('/refresh-token',
-    errorMiddleware,
     async (req: Request, res: Response) => {
         const refreshToken = req.cookies.refreshToken as string;
-        if (!refreshToken) {
-            return res.send(STATUS_CODES.UNAUTHORIZED);
-        }
 
         const result = await jwtService.setNewToken(refreshToken);
 
@@ -114,14 +110,15 @@ authRouter.post('/refresh-token',
 );
 
 authRouter.post('/logout',
-    authMiddleware,
-    errorMiddleware,
     async (req: Request, res: Response) => {
         const refreshToken = req.cookies.refreshToken as string;
-        if (!refreshToken) {
+        const userId = await jwtService.getUserByToken(refreshToken) as ObjectId;
+        const isExpired = await jwtService.checkTokenValid(userId, refreshToken);
+
+        if (!isExpired || !userId) {
             return res.send(STATUS_CODES.UNAUTHORIZED);
         }
-        const userId = new ObjectId(req.body.userId);
+
         const result = await jwtService.setTokenInvalid(userId, refreshToken);
 
         return res.send(STATUS_CODES.SUCCESS_NO_CONTENT);
