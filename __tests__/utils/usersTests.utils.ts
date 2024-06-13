@@ -52,4 +52,13 @@ export const usersTestsUtils = {
 
         return result;
     },
+
+    async logoutUser (refreshToken: string | null, statusCode: STATUS_CODES) {
+        const result = await request(app)
+        .post(ROUTERS_PATH_ENUM.AUTH + '/logout')
+        .set('Cookie', [`refreshToken=${refreshToken}`])
+        .expect(statusCode);
+
+        return result;
+    },
 };
