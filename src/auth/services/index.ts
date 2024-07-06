@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
-import { usersService } from './users-service';
-
-import { userRepository } from '../repositories/users-repository';
+import { usersService } from '../../users/services/';
+import { userRepository } from '../../users/repositories/users-repository';
 import { emailAdapter } from '../adapters/email-adapter';
-import { UserQueryType } from '../types/usersTypes';
+import { UserQueryType } from '../../users/types/usersTypes';
+import { authRepository } from '../repositories';
 
 
 export const authService = {
@@ -19,6 +19,7 @@ export const authService = {
         const subject = 'confirm message';
         await emailAdapter.sendEmail(reqObj.email, subject, message);
     },
+
     async getUserHash (password: string, salt: string):Promise<string> {
         const userHash = await bcrypt.hash(password, salt);
         return userHash;
@@ -51,5 +52,10 @@ export const authService = {
             const subject = 'confirm message again';
             await emailAdapter.sendEmail(email, subject, message);
             return true;
+    },
+
+
+    async deleteAllData () {
+        return await authRepository.deleteAllData();
     }
 };

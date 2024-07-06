@@ -5,4 +5,5 @@ export enum ROUTERS_PATH_ENUM {
   USERS = '/users',
   AUTH = '/auth',
   COMMENTS = '/comments',
+  SECURITY = '/security',
 };

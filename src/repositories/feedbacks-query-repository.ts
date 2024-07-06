@@ -1,6 +1,6 @@
 import { CommentsItemsResponse, CommentResponseType } from '../types/commentsTypes';
 import { PostsQueryParams } from '../types/postsTypes';
-import { commentsCollection } from './db';
+import { commentsCollection } from '../db';
 
 const options = {
     projection: {

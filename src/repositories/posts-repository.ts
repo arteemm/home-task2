@@ -1,5 +1,5 @@
 import { PostItemType, RequestPostBody, PostsQueryParams, PostItemsResponse } from '../types/postsTypes';
-import { postsCollection } from './db';
+import { postsCollection } from '../db';
 
 const options = {
     projection: {

@@ -1,8 +1,9 @@
 import { MongoClient } from 'mongodb';
 import { BlogItemType } from '../types/blogsTypes';
 import { PostItemType } from '../types/postsTypes';
-import { UserType } from '../types/usersTypes';
+import { UserType } from '../users/types/usersTypes';
 import { CommentType } from '../types/commentsTypes';
+import { UserSessionsType } from '../auth/types';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -15,6 +16,7 @@ export const blogsCollection = db.collection<BlogItemType>('blogs');
 export const postsCollection = db.collection<PostItemType>('posts');
 export const usersCollection = db.collection<UserType>('users');
 export const commentsCollection = db.collection<CommentType>('comments');
+export const authCollection = db.collection<UserSessionsType>('auth');
 
 
 export async function runDb () {

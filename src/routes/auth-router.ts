@@ -1,29 +1,27 @@
 import { Request, Response, Router } from 'express';
-import { usersService } from '../domain/users-service';
+import { usersService } from '../users/services/';
 import { body } from 'express-validator';
-import { jwtService } from '../application/jwt-service';
+import { jwtService } from '../auth/services/jwt-service';
 import { authMiddleware } from '../middlewares/auth-middleware';
 import { ObjectId } from 'mongodb';
-import { authService } from '../domain/auth-service'
-import { usersQueryRepository } from '../repositories/users-query-repository';
+import { authService } from '../auth/services';
+import { usersQueryRepository } from '../users/repositories/users-query-repository';
 import { errorMiddleware } from '../middlewares/error-middleware';
-import { STATUS_CODES } from '../constants/statusCodes';
+import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
+import { checkCredentialsMiddleware } from '../auth/middlewares/checkCredentialsMiddleware';
+import { checkRefreshTokenMiddleware } from '../auth/middlewares/checkRefreshTokenMiddleware';
+import { securityRepository } from '../security/repositories';
 
 export const authRouter = Router({});
 
 authRouter.post('/login',
     body(['loginOrEmail', 'password']).isString().trim().notEmpty(),
+    checkCredentialsMiddleware,
     errorMiddleware,
     async(req: Request, res: Response) =>{
-        const user = await usersService.checkCredentials(req.body.loginOrEmail, req.body.password);
-
-        if (!user) {
-            return res.send(STATUS_CODES.UNAUTHORIZED)
-        }
-
-        const {token, refreshToken} = await jwtService.createJWT(user._id);
+        const {accessToken, refreshToken} = await jwtService.createJWT(req);
         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
-        return res.status(STATUS_CODES.SUCCESS_RESPONSE).send({accessToken: token});
+        return res.status(HTTP_STATUS_CODES.SUCCESS_RESPONSE).send({accessToken});
     }
 );
 
@@ -40,7 +38,7 @@ authRouter.get('/me',
             }
         }
 
-        return res.send(STATUS_CODES.UNAUTHORIZED)
+        return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)
     }
 );
 
@@ -64,7 +62,7 @@ authRouter.post('/registration',
     errorMiddleware,
     async (req: Request, res: Response) => {
         const user = await authService.createUser(req.body);
-        return res.send(STATUS_CODES.SUCCESS_NO_CONTENT);
+        return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
     }
 );
 
@@ -75,8 +73,8 @@ authRouter.post('/registration-email-resending',
     errorMiddleware,
     async (req: Request, res: Response) => {
         const result = await authService.resendingEmail(req.body.email);
-        if (!result) return res.status(STATUS_CODES.BAD_REQUEST).send({ errorsMessages: [{ message: 'Invalid confirmation code', field: 'email' }] });
-        return res.send(STATUS_CODES.SUCCESS_NO_CONTENT);
+        if (!result) return res.status(HTTP_STATUS_CODES.BAD_REQUEST).send({ errorsMessages: [{ message: 'Invalid confirmation code', field: 'email' }] });
+        return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
     }
 );
 
@@ -87,40 +85,32 @@ authRouter.post('/registration-confirmation',
         const result = await authService.confirmEmail(req.body.code);
 
         if (!result) {
-            return res.status(STATUS_CODES.BAD_REQUEST).send({ errorsMessages: [{ message: 'Invalid confirmation code', field: 'code' }] });
+            return res.status(HTTP_STATUS_CODES.BAD_REQUEST).send({ errorsMessages: [{ message: 'Invalid confirmation code', field: 'code' }] });
         }
 
-        return res.send(STATUS_CODES.SUCCESS_NO_CONTENT);
+        return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
     }
 );
 
 authRouter.post('/refresh-token',
+    checkRefreshTokenMiddleware,
+    errorMiddleware,
     async (req: Request, res: Response) => {
-        const refreshToken = req.cookies.refreshToken as string;
-
-        const result = await jwtService.setNewToken(refreshToken);
-
-        if (!result) {
-            return res.send(STATUS_CODES.UNAUTHORIZED);
-        }
+        const result = await jwtService.setNewToken(req);
 
         res.cookie('refreshToken', result.refreshToken, { httpOnly: true, secure: true })
-        return res.status(STATUS_CODES.SUCCESS_RESPONSE).send({accessToken: result.token});
+        return res.status(HTTP_STATUS_CODES.SUCCESS_RESPONSE).send({accessToken: result.accessToken});
     }
 );
 
 authRouter.post('/logout',
+    checkRefreshTokenMiddleware,
     async (req: Request, res: Response) => {
         const refreshToken = req.cookies.refreshToken as string;
-        const userId = await jwtService.getUserByToken(refreshToken) as ObjectId;
-        const isExpired = await jwtService.checkTokenValid(userId, refreshToken);
+        const userId = req.userId as string;
+        const result = await jwtService.getUserDataByToken(refreshToken);
+        await securityRepository.deleteUserDeviceById(userId, result!.deviceId);
 
-        if (!isExpired || !userId) {
-            return res.send(STATUS_CODES.UNAUTHORIZED);
-        }
-
-        const result = await jwtService.setTokenInvalid(userId, refreshToken);
-
-        return res.send(STATUS_CODES.SUCCESS_NO_CONTENT);
+        return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
     }
 );

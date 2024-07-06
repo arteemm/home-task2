@@ -4,8 +4,7 @@ import { feedbackService } from '../domain/feedbacks-service';
 import { body } from 'express-validator';
 import { ObjectId } from 'mongodb';
 import { errorMiddleware } from '../middlewares/error-middleware';
-import { STATUS_CODES } from '../constants/statusCodes';
-import { validationAuthMiddleware } from '../middlewares/validation-auth-middleware';
+import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
 
 export const feedbackRouter = Router({});
 
@@ -14,17 +13,17 @@ feedbackRouter.get('/:id',
     const commentId = req.params.id;
 
     if (!ObjectId.isValid(commentId)) {
-      res.send(STATUS_CODES.NOT_FOUND);
+      res.send(HTTP_STATUS_CODES.NOT_FOUND);
       return;
     }
 
     const comment = await feedbackService.getCommentById(commentId);
 
     if (!comment) {
-      return res.send(STATUS_CODES.NOT_FOUND);
+      return res.send(HTTP_STATUS_CODES.NOT_FOUND);
     }
 
-    return res.status(STATUS_CODES.SUCCESS_RESPONSE).send(comment);
+    return res.status(HTTP_STATUS_CODES.SUCCESS_RESPONSE).send(comment);
 });
 
 feedbackRouter.put('/:id',
@@ -36,7 +35,7 @@ feedbackRouter.put('/:id',
       if (req.userId) {
         const idComment = req.params.id;
         if (!ObjectId.isValid(idComment)) {
-          res.send(STATUS_CODES.NOT_FOUND);
+          res.send(HTTP_STATUS_CODES.NOT_FOUND);
           return;
         }
     
@@ -44,21 +43,21 @@ feedbackRouter.put('/:id',
         const comment = await feedbackService.getCommentById(idComment);
         const isOwner = await feedbackService.checkOwnerComment(comment!.commentatorInfo.userId, req.userId);
           if (!isOwner) {
-            return res.send(STATUS_CODES.FORBIDDEN);
+            return res.send(HTTP_STATUS_CODES.FORBIDDEN);
           }
         }
   
         const result = await feedbackService.updateComment(req.body, idComment);
 
         if (!result) {
-          res.send(STATUS_CODES.NOT_FOUND);
+          res.send(HTTP_STATUS_CODES.NOT_FOUND);
           return;
         }
 
-      return res.send(STATUS_CODES.SUCCESS_NO_CONTENT);
+      return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
       }
 
-      return res.send(STATUS_CODES.NOT_FOUND);
+      return res.send(HTTP_STATUS_CODES.NOT_FOUND);
 });
 
 feedbackRouter.delete('/:id',
@@ -66,7 +65,7 @@ feedbackRouter.delete('/:id',
   async (req: Request, res: Response) => {
     const id = req.params.id;
     if (!ObjectId.isValid(id)) {
-      res.send(STATUS_CODES.NOT_FOUND);
+      res.send(HTTP_STATUS_CODES.NOT_FOUND);
       return;
     }
 
@@ -74,17 +73,17 @@ feedbackRouter.delete('/:id',
     const comment = await feedbackService.getCommentById(id);
     const isOwner = await feedbackService.checkOwnerComment(comment!.commentatorInfo.userId, req.userId);
       if (!isOwner) {
-        return res.send(STATUS_CODES.FORBIDDEN);
+        return res.send(HTTP_STATUS_CODES.FORBIDDEN);
       }
     }
     
     const result = await feedbackService.deleteComment(id);
 
       if (!result) {
-        res.send(STATUS_CODES.NOT_FOUND);
+        res.send(HTTP_STATUS_CODES.NOT_FOUND);
         return;
       }
     
 
-    return res.send(STATUS_CODES.SUCCESS_NO_CONTENT);
+    return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
 });

@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { UserType, UserResponseType } from '../types/usersTypes';
-import { usersCollection } from './db';
+import { usersCollection } from '../../db';
 
 const options = {
     projection: {
@@ -55,9 +55,5 @@ export const userRepository = {
         const result = await usersCollection.updateOne({'accountData.email':  email}, {$set: {'emailConfirmation.confirmationCode': confirmationCode}});
 
         return result.matchedCount === 1;
-    },
-
-    async addTokenToUsedList(userId: ObjectId, refreshToken: string) {
-        usersCollection.updateOne({_id: userId}, {$push: {usedTokens: refreshToken}});
     },
 };

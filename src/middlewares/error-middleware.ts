@@ -1,6 +1,6 @@
 import { NextFunction, Response, Request } from 'express';
 import { validationResult } from 'express-validator';
-import { STATUS_CODES } from '../constants/statusCodes';
+import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
 import { ValidationResultError } from '../types/errorsTypes';
 
 
@@ -17,5 +17,5 @@ export const errorMiddleware = (req: Request<{}, {}, {}, {}>, res: Response, nex
             validationErrors.push({ message : error.msg, field: error.path});
         }
     });
-    return res.status(STATUS_CODES.BAD_REQUEST).send({ errorsMessages: validationErrors });
+    return res.status(HTTP_STATUS_CODES.BAD_REQUEST).send({ errorsMessages: validationErrors });
 }
