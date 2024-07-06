@@ -1,6 +1,6 @@
 import { BlogItemType, RequestBlogBody, BlogsQueryParams, BlogItemsResponse } from '../types/blogsTypes';
 import { PostsQueryParams, PostItemsResponse } from '../types/postsTypes';
-import { blogsCollection, postsCollection } from './db';
+import { blogsCollection, postsCollection } from '../db';
 
 const options = {
     projection: {

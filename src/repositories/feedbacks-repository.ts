@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { CommentType, CommentResponseType, CommentRequestType } from '../types/commentsTypes';
-import { commentsCollection } from './db';
+import { commentsCollection } from '../db';
 
 const options = {
     projection: {

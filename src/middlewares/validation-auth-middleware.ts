@@ -1,4 +1,4 @@
-import { STATUS_CODES } from '../constants/statusCodes'
+import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes'
 import { Request, Response, NextFunction } from 'express';
 
 const auth = {
@@ -15,6 +15,6 @@ export const validationAuthMiddleware = ((req: Request<{}, {}, {}, {}>, res: Res
       return next();
     }
   
-    res.status(STATUS_CODES.UNAUTHORIZED).send('Authentication required.')
+    res.status(HTTP_STATUS_CODES.UNAUTHORIZED).send('Authentication required.')
 });
   

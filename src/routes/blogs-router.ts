@@ -5,7 +5,7 @@ import { body } from 'express-validator';
 import { PostsQueryParams } from '../types/postsTypes';
 import { BlogsQueryParams } from '../types/blogsTypes';
 import { errorMiddleware } from '../middlewares/error-middleware';
-import { STATUS_CODES } from '../constants/statusCodes';
+import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
 import { validationAuthMiddleware } from '../middlewares/validation-auth-middleware';
 
 export const blogsRouter = Router({});
@@ -25,7 +25,7 @@ blogsRouter.get('/:id', async (req: Request, res: Response) => {
     return res.send(blog);
   }
 
-  return res.send(STATUS_CODES.NOT_FOUND);
+  return res.send(HTTP_STATUS_CODES.NOT_FOUND);
 });
 
 
@@ -35,12 +35,12 @@ blogsRouter.get('/:id/posts', async (req: Request<{id: string}, {}, {}, PostsQue
   const blog = await blogsService.getBlogById(id);
 
   if (!blog) {
-    return res.send(STATUS_CODES.NOT_FOUND);
+    return res.send(HTTP_STATUS_CODES.NOT_FOUND);
   }
 
   const posts = await blogsService.getPostsByBlogId(id, blogsQueryObj);
 
-  return res.status(STATUS_CODES.SUCCESS_RESPONSE).send(posts);
+  return res.status(HTTP_STATUS_CODES.SUCCESS_RESPONSE).send(posts);
 });
 
 blogsRouter.post('/',
@@ -52,7 +52,7 @@ blogsRouter.post('/',
   errorMiddleware,
   async (req: Request, res: Response) => {
     const blog =  await blogsService.createBlog(req.body);
-    return res.status(STATUS_CODES.SUCCESS_CREATED).send(blog);
+    return res.status(HTTP_STATUS_CODES.SUCCESS_CREATED).send(blog);
 });
 
 blogsRouter.post('/:id/posts',
@@ -66,11 +66,11 @@ blogsRouter.post('/:id/posts',
     const id = req.params.id;
     const blog = await blogsService.getBlogById(id);
     if (!blog) {
-      return res.send(STATUS_CODES.NOT_FOUND);
+      return res.send(HTTP_STATUS_CODES.NOT_FOUND);
     }
 
     const post =  await postsService.createPost({...req.body, blogId: id});
-    return res.status(STATUS_CODES.SUCCESS_CREATED).send(post);
+    return res.status(HTTP_STATUS_CODES.SUCCESS_CREATED).send(post);
 });
 
 blogsRouter.put('/:id',
@@ -86,10 +86,10 @@ blogsRouter.put('/:id',
   const updatedResult = await blogsService.updateBlog(id, req.body);
 
   if (!updatedResult) {
-    return res.send(STATUS_CODES.NOT_FOUND);
+    return res.send(HTTP_STATUS_CODES.NOT_FOUND);
   }
 
-  return res.send(STATUS_CODES.SUCCESS_NO_CONTENT);
+  return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
 })
 
 blogsRouter.delete('/:id',
@@ -99,9 +99,9 @@ blogsRouter.delete('/:id',
     const result =  await blogsService.deleteBlog(id);
 
     if (!result) {
-      res.send(STATUS_CODES.NOT_FOUND);
+      res.send(HTTP_STATUS_CODES.NOT_FOUND);
       return;
     }
   
-    return res.send(STATUS_CODES.SUCCESS_NO_CONTENT);
+    return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
 });

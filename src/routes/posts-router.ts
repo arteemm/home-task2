@@ -7,7 +7,7 @@ import { authMiddleware } from '../middlewares/auth-middleware';
 import { feedbackService } from '../domain/feedbacks-service';
 import { feedbacksQueryRepository } from '../repositories/feedbacks-query-repository';
 import { errorMiddleware } from '../middlewares/error-middleware';
-import { STATUS_CODES } from '../constants/statusCodes';
+import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
 import { validationAuthMiddleware } from '../middlewares/validation-auth-middleware';
 
 export const postsRouter = Router({});
@@ -26,7 +26,7 @@ postsRouter.get('/:id', async (req: Request, res: Response) => {
     return res.send(post);
   }
 
-  return res.send(STATUS_CODES.NOT_FOUND);
+  return res.send(HTTP_STATUS_CODES.NOT_FOUND);
 });
 
 postsRouter.get('/:id/comments', async (req: Request<{id: string}, {}, {}, PostsQueryParams>, res: Response) => {
@@ -37,10 +37,10 @@ postsRouter.get('/:id/comments', async (req: Request<{id: string}, {}, {}, Posts
 
   if (post) {
     const comments = await feedbacksQueryRepository.getAllComments(queryParam, id);
-    return res.status(STATUS_CODES.SUCCESS_RESPONSE).send(comments);
+    return res.status(HTTP_STATUS_CODES.SUCCESS_RESPONSE).send(comments);
   }
 
-  return res.send(STATUS_CODES.NOT_FOUND);
+  return res.send(HTTP_STATUS_CODES.NOT_FOUND);
 });
 
 postsRouter.post('/',
@@ -58,7 +58,7 @@ postsRouter.post('/',
   errorMiddleware,
   async (req: Request, res: Response) => {
     const newPost = await postsService.createPost(req.body);
-    return res.status(STATUS_CODES.SUCCESS_CREATED).send(newPost);
+    return res.status(HTTP_STATUS_CODES.SUCCESS_CREATED).send(newPost);
 });
 
 postsRouter.post('/:postsId/comments',
@@ -72,14 +72,14 @@ postsRouter.post('/:postsId/comments',
       const post = await postsService.getPostById(postsId);
 
       if (!post) {
-        return res.send(STATUS_CODES.NOT_FOUND);
+        return res.send(HTTP_STATUS_CODES.NOT_FOUND);
       }
 
       const newComment = await feedbackService.createComment(req.body, req.userId, postsId);
-      return res.status(STATUS_CODES.SUCCESS_CREATED).send(newComment);
+      return res.status(HTTP_STATUS_CODES.SUCCESS_CREATED).send(newComment);
     }
 
-    return res.send(STATUS_CODES.NOT_FOUND);
+    return res.send(HTTP_STATUS_CODES.NOT_FOUND);
 });
 
 
@@ -101,10 +101,10 @@ postsRouter.put('/:id',
     const post = await postsService.updatePost(id, req.body);
 
     if (!post) {
-      return res.send(STATUS_CODES.NOT_FOUND);
+      return res.send(HTTP_STATUS_CODES.NOT_FOUND);
     }
 
-    return res.send(STATUS_CODES.SUCCESS_NO_CONTENT);
+    return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
 });
 
 postsRouter.delete('/:id',
@@ -114,9 +114,9 @@ postsRouter.delete('/:id',
     const result = await postsService.deletePost(id);;
 
     if (!result) {
-      res.send(STATUS_CODES.NOT_FOUND);
+      res.send(HTTP_STATUS_CODES.NOT_FOUND);
       return;
     }
  
-    return res.send(STATUS_CODES.SUCCESS_NO_CONTENT);
+    return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
 });

@@ -1,19 +1,18 @@
 import { NextFunction, Response, Request } from 'express';
-import { jwtService } from '../application/jwt-service';
-import { usersService } from '../domain/users-service';
-import { STATUS_CODES } from '../constants/statusCodes';
+import { jwtService } from '../auth/services/jwt-service';
+import { usersService } from '../users/services';
+import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(' ')[1];
 
     if (token) {
-        const userId = await jwtService.getUserByToken(token);
-
-        if (userId) {
-            const user = await usersService.getUserById(userId);
-
+        const result = await jwtService.getUserDataByToken(token);
+        
+        if (result) {
+            const user = await usersService.getUserById(result.userId);
             if (user) {
-                req.userId = user.id as string;
+                req.userId = user.id.toString();
                 next();
                 return;
             }
@@ -22,5 +21,5 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
     
 
-    return res.send(STATUS_CODES.UNAUTHORIZED);
+    return res.send(HTTP_STATUS_CODES.UNAUTHORIZED);
 };

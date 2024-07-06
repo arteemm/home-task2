@@ -1,4 +1,4 @@
-export enum STATUS_CODES {
+export enum HTTP_STATUS_CODES {
     SUCCESS_RESPONSE = 200,
     SUCCESS_CREATED = 201,
     SUCCESS_NO_CONTENT = 204,
@@ -6,4 +6,5 @@ export enum STATUS_CODES {
     UNAUTHORIZED = 401,
     FORBIDDEN = 403,
     NOT_FOUND = 404,
+    RATE_LIMITING = 429,
 };

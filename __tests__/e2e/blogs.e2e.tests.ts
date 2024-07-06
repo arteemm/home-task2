@@ -5,7 +5,7 @@ import { BlogItemType } from '../../src/types/blogsTypes';
 import { MongoClient } from 'mongodb';
 import { ROUTERS_PATH_ENUM } from '../../src/constants/routersPath';
 import { blogsUtils } from '../utils/blogs.utils';
-import { STATUS_CODES } from '../../src/constants/statusCodes';
+import { HTTP_STATUS_CODES } from '../../src/constants/httpStatusCodes';
 
 dotenv.config();
 
@@ -39,7 +39,7 @@ describe(ROUTERS_PATH_ENUM.BLOGS, () => {
                 { message: 'Invalid value', field: 'websiteUrl' }
         ]};
 
-        await blogsUtils.createBlog(incorrectEntity, STATUS_CODES.BAD_REQUEST, errorsObj);
+        await blogsUtils.createBlog(incorrectEntity, HTTP_STATUS_CODES.BAD_REQUEST, errorsObj);
 
         const res = await request(app).get(ROUTERS_PATH_ENUM.BLOGS);
         expect(res.body).toEqual({ pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] })
