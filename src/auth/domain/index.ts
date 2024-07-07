@@ -38,7 +38,7 @@ export const jwtManager= {
         const newEntity = {
             ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
             title: req.useragent?.platform || 'Windows',
-            lastActiveDate,
+            lastActiveDate: new Date(lastActiveDate).toJSON(),
             deviceId,
             url: req.baseUrl,
             expirationDate: lastActiveDate - 20000,
