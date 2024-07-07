@@ -31,7 +31,7 @@ export const checkCredentialsMiddleware = async (req: Request, res: Response, ne
 
             return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)
         }
-        attempts[ip].countAttempts = 0;
+        attempts[ip] ? attempts[ip].countAttempts = 0 : attempts[ip];
         req.userId = user._id.toString();
         next();
         return;
