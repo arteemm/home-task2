@@ -8,20 +8,23 @@ import { securityQueryRepository } from '../../security/repositories/security-qu
 
 
 export const jwtService = {
-    async createJWT(req: Request, currentDeviceId: string | null = null) {
-        const platform = req.useragent?.platform || 'Windows';
-        const refreshTokenCreateTimestamp= Date.now();
-        const deviceId = currentDeviceId || await jwtManager.getDeviceHash(platform);
-        const id = req.userId as string;
+    async createJWT(id: string, deviceId: string, refreshTokenCreateTimestamp: number) {
         const { accessToken, refreshToken } = jwtManager.getNewTokens(id, refreshTokenCreateTimestamp, deviceId);
-        const newEntity = jwtManager.createNewEntity(req, refreshTokenCreateTimestamp, deviceId);
+ 
+        return {
+            accessToken,
+            refreshToken,
+        };
+    },
 
-        const isActiveDevice = await securityQueryRepository.checkActiveDevice(id, deviceId);
-        if (isActiveDevice) {
-            await authRepository.updateCurrencyDeviceEntity(id, newEntity);
-        } else {
-            await authRepository.updateNewDeviceEntity(id, newEntity);
-        }
+    async loginUser(req: Request, ) {
+        const id = req.userId as string;
+        const platform = req.useragent?.platform || 'Windows';
+        const refreshTokenCreateTimestamp = Date.now(); 
+        const deviceId = await jwtManager.getDeviceHash(platform);
+        const newEntity = jwtManager.createNewEntity(req, refreshTokenCreateTimestamp, deviceId);
+        await authRepository.updateNewDeviceEntity(id, newEntity);
+        const {accessToken, refreshToken} = await this.createJWT(id, deviceId, refreshTokenCreateTimestamp);
 
         return {
             accessToken,
@@ -43,9 +46,13 @@ export const jwtService = {
     },
 
     async setNewToken(req: Request) {
+        const id = req.userId as string;
         const currentRefreshToken = req.cookies.refreshToken as string;
         const result = await this.getUserDataByToken(currentRefreshToken);
-        const {accessToken, refreshToken} = await this.createJWT(req, result?.deviceId);
+        const refreshTokenCreateTimestamp = Date.now(); 
+        const {accessToken, refreshToken} = await this.createJWT(id, result!.deviceId, refreshTokenCreateTimestamp);
+        const newEntity = jwtManager.createNewEntity(req, refreshTokenCreateTimestamp, result!.deviceId);
+        await authRepository.updateCurrencyDeviceEntity(id, newEntity);
         return {accessToken, refreshToken};
     },
 };

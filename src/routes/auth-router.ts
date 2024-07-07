@@ -19,7 +19,7 @@ authRouter.post('/login',
     checkCredentialsMiddleware,
     errorMiddleware,
     async(req: Request, res: Response) =>{
-        const {accessToken, refreshToken} = await jwtService.createJWT(req);
+        const {accessToken, refreshToken} = await jwtService.loginUser(req);
         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
         return res.status(HTTP_STATUS_CODES.SUCCESS_RESPONSE).send({accessToken});
     }

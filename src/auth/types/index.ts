@@ -9,7 +9,7 @@ export type UserSessionsType = {
 export type UserSessionByDeviceType = {
     ip: string | string[] | undefined;
     title: string;
-    lastActiveDate: number;
+    lastActiveDate: string;
     deviceId: string;
     url: string;
     expirationDate: number;

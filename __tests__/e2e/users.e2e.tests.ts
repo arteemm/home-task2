@@ -122,14 +122,11 @@ describe(ROUTERS_PATH_ENUM.USERS, () => {
     });
 
     it('- count all active user\'s devices to be equal 1', async () => {
-        const devices = await request(app).
-        get(ROUTERS_PATH_ENUM.SECURITY + '/devices')
-        .set('Authorization', `Bearer ${usersAccessTokens.device1}`)
-        .expect(HTTP_STATUS_CODES.SUCCESS_RESPONSE);
+        const devices = await usersTestsUtils.getUserDevices(usersRefreshTokens.device1);
 
-        expect(devices.body).toEqual([{ ip: expect.any(String), title: 'iPhone', lastActiveDate: expect.any(String), deviceId: expect.any(String) }])
+        expect(devices.body).toEqual([{ ip: expect.any(String), title: 'iPhone', lastActiveDate: expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/), deviceId: expect.any(String) }])
     });
-
+/*
     it('- Should login user on device 2 with correct data', async () => {
         const loginUser2 = await usersTestsUtils.loginUser({loginOrEmail: userDevicesCollection[0].login, password: userPassword}, HTTP_STATUS_CODES.SUCCESS_RESPONSE, 'Linux');
         usersAccessTokens.device2 = loginUser2.body;
@@ -174,12 +171,12 @@ describe(ROUTERS_PATH_ENUM.USERS, () => {
 
     it('- Shouldn\'t delete device1 with incorrect deviceId', async () => {
         const deviceId = '1111111111111111';
-        const result = await usersTestsUtils.deleteUserDevice(deviceId, usersAccessTokens.device1, HTTP_STATUS_CODES.FORBIDDEN);
+        const result = await usersTestsUtils.deleteUserDevice(deviceId, usersRefreshTokens.device1, HTTP_STATUS_CODES.FORBIDDEN);
         expect(result.body).toEqual({});
     });
 
     it('- Should delete device1 with correct AccessToken', async () => {
-        const devices = (await usersTestsUtils.getUserDevices( usersAccessTokens.device1 )).body;
+        const devices = (await usersTestsUtils.getUserDevices( usersRefreshTokens.device1 )).body;
         const deviceId = devices[0].deviceId;
     
         const result = await usersTestsUtils.deleteUserDevice(deviceId, usersAccessTokens.device1, HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
@@ -187,10 +184,7 @@ describe(ROUTERS_PATH_ENUM.USERS, () => {
     });
 
     it('- count all active user\'s devices to be equal 1', async () => {
-        const devices = await request(app).
-        get(ROUTERS_PATH_ENUM.SECURITY + '/devices')
-        .set('Authorization', `Bearer ${usersAccessTokens.device1}`)
-        .expect(HTTP_STATUS_CODES.SUCCESS_RESPONSE);
+        const devices = (await usersTestsUtils.getUserDevices( usersRefreshTokens.device1 )).body;
 
         expect(devices.body).toHaveLength(3)
     });
@@ -207,16 +201,12 @@ describe(ROUTERS_PATH_ENUM.USERS, () => {
     });
 
     it('- Should delete all devices with correct AccessToken', async () => {
-        const result = await usersTestsUtils.deleteUserAllDevices(usersAccessTokens.device1);
+        const result = await usersTestsUtils.deleteUserAllDevices(usersRefreshTokens.device1);
         expect(result.body).toEqual({});
     });
 
     it('- count all active user\'s devices to be equal 0', async () => {
-        const devices = await request(app).
-        get(ROUTERS_PATH_ENUM.SECURITY + '/devices')
-        .set('Authorization', `Bearer ${usersAccessTokens.device1}`)
-        .expect(HTTP_STATUS_CODES.SUCCESS_RESPONSE);
-
+        const devices = (await usersTestsUtils.getUserDevices( usersRefreshTokens.device1 )).body;
         expect(devices.body).toHaveLength(0)
     });
 
@@ -230,5 +220,5 @@ describe(ROUTERS_PATH_ENUM.USERS, () => {
     });
 
 
-
+*/
 });

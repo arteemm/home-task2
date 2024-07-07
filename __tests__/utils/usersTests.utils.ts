@@ -77,29 +77,29 @@ export const usersTestsUtils = {
         }
     },
 
-    async deleteUserDevice(deviceId: string, accessToken: string, status: number) {
+    async deleteUserDevice(deviceId: string, refreshToken: string, status: number) {
         const result = await request(app)
         .delete(ROUTERS_PATH_ENUM.SECURITY + `/devices/${deviceId}`)
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Cookie', [`refreshToken=${refreshToken}`])
         .expect(status);
 
         return result;
     },
 
-    async getUserDevices(accessToken: string) {
+    async getUserDevices(refreshToken: string) {
         const devices = await request(app).
         get(ROUTERS_PATH_ENUM.SECURITY + '/devices')
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Cookie', [`refreshToken=${refreshToken}`])
         .expect(HTTP_STATUS_CODES.SUCCESS_RESPONSE);
 
         return devices;
     },
 
 
-    async deleteUserAllDevices(accessToken: string) {
+    async deleteUserAllDevices(refreshToken: string) {
         const result = await request(app)
         .delete(ROUTERS_PATH_ENUM.SECURITY + `/devices`)
-        .set('Authorization', `Bearer ${accessToken}`)
+        .set('Cookie', [`refreshToken=${refreshToken}`])
         .expect(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
 
         return result;
