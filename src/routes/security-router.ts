@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { authMiddleware } from '../middlewares/auth-middleware';
+import { checkRefreshTokenMiddleware } from '../auth/middlewares/checkRefreshTokenMiddleware';
 import { errorMiddleware } from '../middlewares/error-middleware';
 import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
 import { securityQueryRepository } from '../security/repositories/security-query-repository';
@@ -9,7 +9,7 @@ import { checkOwnDeviceMiddleware } from '../security/middlewares/checkOwnDevice
 export const securityRouter = Router({});
 
 securityRouter.get('/devices',
-    authMiddleware,
+    checkRefreshTokenMiddleware,
     errorMiddleware,
     async(req: Request, res: Response) =>{
         const devices = await securityQueryRepository.getAllDevices(req.userId as string);
@@ -18,7 +18,7 @@ securityRouter.get('/devices',
 );
 
 securityRouter.delete('/devices/:deviceId',
-    authMiddleware,
+    checkRefreshTokenMiddleware,
     checkOwnDeviceMiddleware,
     errorMiddleware,
     async(req: Request, res: Response) =>{
@@ -34,7 +34,7 @@ securityRouter.delete('/devices/:deviceId',
 );
 
 securityRouter.delete('/devices',
-    authMiddleware,
+    checkRefreshTokenMiddleware,
     errorMiddleware,
     async(req: Request, res: Response) =>{
         const devices = await securityRepository.deleteUsersAllDevices(req.userId as string);
