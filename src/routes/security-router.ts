@@ -12,7 +12,7 @@ securityRouter.get('/devices',
     checkRefreshTokenMiddleware,
     errorMiddleware,
     async(req: Request, res: Response) =>{
-        const devices = await securityQueryRepository.getAllDevices(req.userId as string);
+        const devices = await securityQueryRepository.getAllUserDevices(req.userId as string);
         return res.status(HTTP_STATUS_CODES.SUCCESS_RESPONSE).send(devices);
     }
 );
@@ -24,10 +24,6 @@ securityRouter.delete('/devices/:deviceId',
     async(req: Request, res: Response) =>{
         const deviceId = req.params.deviceId;
         const devices = await securityRepository.deleteUserDeviceById(req.userId as string, deviceId);
-
-        if (!devices) {
-            return res.send(HTTP_STATUS_CODES.NOT_FOUND);
-        }
 
         return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
     }

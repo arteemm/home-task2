@@ -11,6 +11,7 @@ import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
 import { checkCredentialsMiddleware } from '../auth/middlewares/checkCredentialsMiddleware';
 import { checkRefreshTokenMiddleware } from '../auth/middlewares/checkRefreshTokenMiddleware';
 import { securityRepository } from '../security/repositories';
+import { securityQueryRepository } from '../security/repositories/security-query-repository';
 
 export const authRouter = Router({});
 
@@ -109,6 +110,12 @@ authRouter.post('/logout',
         const refreshToken = req.cookies.refreshToken as string;
         const userId = req.userId as string;
         const result = await jwtService.getUserDataByToken(refreshToken);
+        const isActiveDevice = await securityQueryRepository.checkActiveDevice(userId, result!.deviceId);
+
+        if (!isActiveDevice) {
+            return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)
+        }
+
         await securityRepository.deleteUserDeviceById(userId, result!.deviceId);
 
         return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);

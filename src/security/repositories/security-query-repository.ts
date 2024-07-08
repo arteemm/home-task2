@@ -1,7 +1,5 @@
 import { UserSessionDeviceType,  } from '../types/';
-import { UserSessionByDeviceType, UserSessionsType  } from '../../auth/types';
 import { authCollection } from '../../db';
-import { ObjectId } from 'mongodb';
 
 const options = {
     projection: {
@@ -17,7 +15,7 @@ const options = {
 
 export const securityQueryRepository = {
 
-    async getAllDevices (userId: string): Promise<UserSessionDeviceType[] | null> {
+    async getAllUserDevices (userId: string): Promise<UserSessionDeviceType[] | null> {
         const devices = await authCollection.findOne({userId});
         
         let result: UserSessionDeviceType[] | null = null;
@@ -39,5 +37,12 @@ export const securityQueryRepository = {
         const device = await authCollection.findOne({userId: userId, 'sessions.deviceId': deviceId});
 
         return device ? true : false;
+    },
+
+    async getAllActiveSessions() {
+        const devices = await authCollection.find({}).toArray();
+        return devices;
     }
+
+
 };
