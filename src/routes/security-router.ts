@@ -33,7 +33,8 @@ securityRouter.delete('/devices',
     checkRefreshTokenMiddleware,
     errorMiddleware,
     async(req: Request, res: Response) =>{
-        const devices = await securityRepository.deleteUsersAllDevices(req.userId as string);
+        const refreshToken = req.cookies.refreshToken as string;
+        const devices = await securityRepository.deleteUsersAllDevices(req.userId as string, refreshToken);
         return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
     }
 );
