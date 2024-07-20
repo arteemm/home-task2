@@ -6,7 +6,7 @@ const attempts: {[keyof: string] : {
     timeFirstAttempt: number;
 }} = {};
 
-export const checkAttemptsMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const checkAttemptsConfirmationMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress) as string;
     const url = `${ip}`+`${req.originalUrl}`;
 

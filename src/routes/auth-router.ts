@@ -12,7 +12,9 @@ import { checkCredentialsMiddleware } from '../auth/middlewares/checkCredentials
 import { checkRefreshTokenMiddleware } from '../auth/middlewares/checkRefreshTokenMiddleware';
 import { securityRepository } from '../security/repositories';
 import { securityQueryRepository } from '../security/repositories/security-query-repository';
-import { checkAttemptsMiddleware } from '../auth/middlewares/checkAttemptsMiddleware';
+import { checkAttemptsConfirmationMiddleware } from '../auth/middlewares/checkAttemptsConfirmationMiddleware';
+import { checkAttemptsRegConfirmationMiddleware } from '../auth/middlewares/checkAttemptsRegConfirmationMiddleware';
+import { checkAttemptsRegistrationMiddleware } from '../auth/middlewares/checkAttemptsRegistrationMiddleware';
 
 export const authRouter = Router({});
 
@@ -61,7 +63,7 @@ authRouter.post('/registration',
             throw new Error('email must be unique');
           }
       }),
-    checkAttemptsMiddleware,
+      checkAttemptsRegistrationMiddleware,
     errorMiddleware,
     async (req: Request, res: Response) => {
         const user = await authService.createUser(req.body);
@@ -73,7 +75,7 @@ authRouter.post('/registration',
 authRouter.post('/registration-email-resending',
     body('email').isString().trim().notEmpty(),
     body('email').isLength({min: 3, max:1000}).matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('lal'),
-    checkAttemptsMiddleware,
+    checkAttemptsRegConfirmationMiddleware,
     errorMiddleware,
     async (req: Request, res: Response) => {
         const result = await authService.resendingEmail(req.body.email);
@@ -84,7 +86,7 @@ authRouter.post('/registration-email-resending',
 
 authRouter.post('/registration-confirmation',
     body('code').isString().trim().notEmpty(),
-    checkAttemptsMiddleware,
+    checkAttemptsConfirmationMiddleware,
     errorMiddleware,
     async (req: Request, res: Response) => {
         const result = await authService.confirmEmail(req.body.code);
