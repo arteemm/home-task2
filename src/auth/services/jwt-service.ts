@@ -4,7 +4,6 @@ import { settings } from '../../settings';
 import { jwtManager } from '../domain';
 import { authRepository } from '../repositories';
 import { Request } from 'express';
-import { securityQueryRepository } from '../../security/repositories/security-query-repository';
 
 
 export const jwtService = {
