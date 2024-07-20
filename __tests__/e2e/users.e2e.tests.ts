@@ -223,13 +223,13 @@ describe(ROUTERS_PATH_ENUM.USERS, () => {
     });
 
     it('- Should delete all devices with correct AccessToken', async () => {
-        const result = await usersTestsUtils.deleteUserAllDevices(usersRefreshTokens.device1);
+        const result = await usersTestsUtils.deleteUserAllDevices(usersRefreshTokens.device2);
         expect(result.body).toEqual({});
     });
 
     it('- count all active user\'s devices to be equal 0', async () => {
         const devices = (await usersTestsUtils.getUserDevices( usersRefreshTokens.device1 ));
-        expect(devices.body).toHaveLength(0)
+        expect(devices.body).toHaveLength(1)
     });
 
     it('- Should return 429 error , it is too mane attempts from ip', async () => {

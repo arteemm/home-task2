@@ -1,17 +1,11 @@
-import { UserSessionDeviceType,  } from '../types/';
-import { UserSessionByDeviceType, UserSessionsType  } from '../../auth/types';
+import { jwtService } from '../../auth/services/jwt-service';
+import { securityQueryRepository } from './security-query-repository';
 import { authCollection } from '../../db';
-import { ObjectId } from 'mongodb';
 
 const options = {
     projection: {
         _id: 0,
         sessions: 1,
-        // userId: 0,
-        // ip: '$sessions[0].ip',
-        // title: '$sessions[0].title',
-        // lastActiveDate: '$sessions[0].lastActiveDate',
-        // deviceId: '$sessions[0].deviceId'
     }
 };
 
@@ -23,8 +17,13 @@ export const securityRepository = {
         return result.matchedCount === 1;
     },
 
-    async deleteUsersAllDevices (userId: string): Promise<boolean> {
-        const result = await authCollection.updateOne({userId}, {$set: {sessions: []}});
+    async deleteUsersAllDevices (userId: string, refreshToken: string): Promise<boolean> {
+        const userData = await jwtService.getUserDataByToken(refreshToken);
+        const activeSessions = await authCollection.findOne({
+            userId: userId, 'sessions.deviceId': userData!.deviceId,
+        });
+        const activeSession = activeSessions!.sessions.filter(item => item.deviceId === userData!.deviceId);
+        const result = await authCollection.updateOne({userId}, {$set: {sessions: [...activeSession]}});
         
         return result.matchedCount === 1;
     },

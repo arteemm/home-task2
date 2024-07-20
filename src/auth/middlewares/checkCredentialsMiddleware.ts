@@ -23,7 +23,7 @@ export const checkCredentialsMiddleware = async (req: Request, res: Response, ne
             } else {
                 attempts[ip].countAttempts++
             }
-            if (attempts[ip].countAttempts > 5 && (Date.now() - attempts[ip].timeFirstAttempt) < 100000) {
+            if (attempts[ip].countAttempts > 5 && (Date.now() - attempts[ip].timeFirstAttempt) < 10000) {
                 return res.send(HTTP_STATUS_CODES.RATE_LIMITING)
             }
 
