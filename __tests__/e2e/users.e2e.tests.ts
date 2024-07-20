@@ -6,7 +6,6 @@ import { MongoClient } from 'mongodb';
 import { ROUTERS_PATH_ENUM } from '../../src/constants/routersPath';
 import { usersTestsUtils } from '../utils/usersTests.utils';
 import { HTTP_STATUS_CODES } from '../../src/constants/httpStatusCodes';
-import { jwtService } from '../../src/auth/services/jwt-service';
 
 dotenv.config();
 
@@ -20,6 +19,7 @@ describe(ROUTERS_PATH_ENUM.USERS, () => {
     const usersRefreshTokens: {[key : string] : string} = {};
     const userDevicesCollection: UserResponseType[] = [];
     const client = new MongoClient(mongoURI);
+    let oldToken = 'lol';
 
     beforeAll(async () => {
         await client.connect();
@@ -116,9 +116,15 @@ describe(ROUTERS_PATH_ENUM.USERS, () => {
     });
 
     it('- Should return new pair accessToken and refreshToken with correct data', async () => {
-        const {accessToken, newRefreshToken} = await usersTestsUtils.returnNewPairTokens(usersRefreshTokens.device1)
+        const {accessToken, newRefreshToken} = await usersTestsUtils.returnNewPairTokens(usersRefreshTokens.device1);
+        oldToken = usersAccessTokens.device1;
         usersAccessTokens.device1 = accessToken;
         usersRefreshTokens.device1 = newRefreshToken;
+    });
+
+    it('- Shouldn\'t logout user with incorrect refreshToken', async () => {
+        const loginUser = await usersTestsUtils.logoutUser(oldToken, HTTP_STATUS_CODES.UNAUTHORIZED);
+        expect(loginUser.body).toEqual({});   
     });
 
     it('- count all active user\'s devices to be equal 1', async () => {
@@ -227,12 +233,12 @@ describe(ROUTERS_PATH_ENUM.USERS, () => {
     });
 
     it('- Should return 429 error , it is too mane attempts from ip', async () => {
-        usersTestsUtils.loginUser({loginOrEmail: 'aaaaaaaa', password: 'vvvvvvvv'}, HTTP_STATUS_CODES.UNAUTHORIZED, 'Android');
-        usersTestsUtils.loginUser({loginOrEmail: 'aaaaaaaa', password: 'vvvvvvvv'}, HTTP_STATUS_CODES.UNAUTHORIZED, 'Android');
-        usersTestsUtils.loginUser({loginOrEmail: 'aaaaaaaa', password: 'vvvvvvvv'}, HTTP_STATUS_CODES.UNAUTHORIZED, 'Android');
-        usersTestsUtils.loginUser({loginOrEmail: 'aaaaaaaa', password: 'vvvvvvvv'}, HTTP_STATUS_CODES.UNAUTHORIZED, 'Android');
-        usersTestsUtils.loginUser({loginOrEmail: 'aaaaaaaa', password: 'vvvvvvvv'}, HTTP_STATUS_CODES.UNAUTHORIZED, 'Android');
-        usersTestsUtils.loginUser({loginOrEmail: 'aaaaaaaa', password: 'vvvvvvvv'}, HTTP_STATUS_CODES.UNAUTHORIZED, 'Android');
+        await usersTestsUtils.loginUser({loginOrEmail: 'aaaaaaaa', password: 'vvvvvvvv'}, HTTP_STATUS_CODES.UNAUTHORIZED, 'Android');
+        await usersTestsUtils.loginUser({loginOrEmail: 'aaaaaaaa', password: 'vvvvvvvv'}, HTTP_STATUS_CODES.UNAUTHORIZED, 'Android');
+        await usersTestsUtils.loginUser({loginOrEmail: 'aaaaaaaa', password: 'vvvvvvvv'}, HTTP_STATUS_CODES.UNAUTHORIZED, 'Android');
+        await usersTestsUtils.loginUser({loginOrEmail: 'aaaaaaaa', password: 'vvvvvvvv'}, HTTP_STATUS_CODES.UNAUTHORIZED, 'Android');
+        await usersTestsUtils.loginUser({loginOrEmail: 'aaaaaaaa', password: 'vvvvvvvv'}, HTTP_STATUS_CODES.UNAUTHORIZED, 'Android');
+        await usersTestsUtils.loginUser({loginOrEmail: 'aaaaaaaa', password: 'vvvvvvvv'}, HTTP_STATUS_CODES.RATE_LIMITING, 'Android');
     });
 
 
