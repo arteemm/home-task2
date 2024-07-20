@@ -16,6 +16,7 @@ import { checkAttemptsConfirmationMiddleware } from '../auth/middlewares/checkAt
 import { checkAttemptsRegConfirmationMiddleware } from '../auth/middlewares/checkAttemptsRegConfirmationMiddleware';
 import { checkAttemptsRegistrationMiddleware } from '../auth/middlewares/checkAttemptsRegistrationMiddleware';
 
+
 export const authRouter = Router({});
 
 authRouter.post('/login',
