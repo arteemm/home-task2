@@ -1,8 +1,7 @@
 import { NextFunction, Response, Request } from 'express';
-import { jwtService } from '../services/jwt-service';
+import { jwtService } from '../../auth/services/jwt-service';
 import { HTTP_STATUS_CODES } from '../../constants/httpStatusCodes';
 import { validationResult } from 'express-validator';
-import { securityQueryRepository } from '../../security/repositories/security-query-repository';
 
 
 export const checkRefreshTokenMiddleware = async (req: Request, res: Response, next: NextFunction) => {
@@ -15,12 +14,8 @@ export const checkRefreshTokenMiddleware = async (req: Request, res: Response, n
         if (!result) {
             return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)
         }
-        const userId = result.userId.toString() as string;
-        const isActiveDevice = await securityQueryRepository.checkActiveDevice(userId, result?.deviceId)
 
-        if (!isActiveDevice) {
-            return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)
-        }
+        const userId = result.userId.toString() as string;
 
         req.userId = userId
         next();
@@ -30,4 +25,3 @@ export const checkRefreshTokenMiddleware = async (req: Request, res: Response, n
     next();
     return;
 };
-

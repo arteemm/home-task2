@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { checkRefreshTokenMiddleware } from '../auth/middlewares/checkRefreshTokenMiddleware';
+import { checkRefreshTokenMiddleware } from '../security/middlewares/checkRefreshTokenMiddleware';
 import { errorMiddleware } from '../middlewares/error-middleware';
 import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
 import { securityQueryRepository } from '../security/repositories/security-query-repository';
