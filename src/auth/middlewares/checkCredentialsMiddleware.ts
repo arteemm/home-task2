@@ -23,20 +23,24 @@ export const checkCredentialsMiddleware = async (req: Request, res: Response, ne
             } else {
                 attempts[ip].countAttempts++
             }
-
-            if (attempts[ip].countAttempts > 5 && (Date.now() - attempts[ip].timeFirstAttempt) < 10000) {
-            
+            if (attempts[ip].countAttempts > 5 && (Date.now() - attempts[ip].timeFirstAttempt) < 100000) {
                 return res.send(HTTP_STATUS_CODES.RATE_LIMITING)
             }
 
             return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)
         }
+        if ((Date.now() - attempts[ip].timeFirstAttempt) < 10000) {
+            return res.send(HTTP_STATUS_CODES.RATE_LIMITING)
+        }
+
         attempts[ip] ? attempts[ip].countAttempts = 0 : attempts[ip];
         req.userId = user._id.toString();
-        next();
-        return;
+        return next();
     }
 
-    next();
-    return;
+    if ((Date.now() - attempts[ip].timeFirstAttempt) < 10000) {
+        return res.send(HTTP_STATUS_CODES.RATE_LIMITING)
+    }
+
+    return next();
 };
