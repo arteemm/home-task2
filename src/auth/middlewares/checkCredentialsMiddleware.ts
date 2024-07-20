@@ -15,30 +15,30 @@ export const checkCredentialsMiddleware = async (req: Request, res: Response, ne
     if (result.isEmpty()) {
         const user = await usersService.checkCredentials(req.body.loginOrEmail, req.body.password);
         if (!user) {
-            if (!attempts[ip]?.countAttempts) {
-                attempts[ip] = {
+            if (!attempts[ip+req.originalUrl]?.countAttempts) {
+                attempts[ip+req.originalUrl] = {
                     timeFirstAttempt: Date.now(),
                     countAttempts: 1,
                 }
             } else {
-                attempts[ip].countAttempts++
+                attempts[ip+req.originalUrl].countAttempts++
             }
-            if (attempts[ip].countAttempts > 5 && (Date.now() - attempts[ip].timeFirstAttempt) < 10000) {
+            if (attempts[ip+req.originalUrl].countAttempts > 5 && (Date.now() - attempts[ip+req.originalUrl].timeFirstAttempt) < 10000) {
                 return res.send(HTTP_STATUS_CODES.RATE_LIMITING)
             }
 
             return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)
         }
-        if (attempts[ip].countAttempts > 5 && (Date.now() - attempts[ip].timeFirstAttempt) < 10000) {
+        if (attempts[ip+req.originalUrl].countAttempts > 5 && (Date.now() - attempts[ip+req.originalUrl].timeFirstAttempt) < 10000) {
             return res.send(HTTP_STATUS_CODES.RATE_LIMITING)
         }
 
-        attempts[ip] ? attempts[ip].countAttempts = 0 : attempts[ip];
+        attempts[ip+req.originalUrl] ? attempts[ip+req.originalUrl].countAttempts = 0 : attempts[ip+req.originalUrl];
         req.userId = user._id.toString();
         return next();
     }
 
-    if (attempts[ip].countAttempts > 5 && (Date.now() - attempts[ip].timeFirstAttempt) < 10000) {
+    if (attempts[ip+req.originalUrl].countAttempts > 5 && (Date.now() - attempts[ip+req.originalUrl].timeFirstAttempt) < 10000) {
         return res.send(HTTP_STATUS_CODES.RATE_LIMITING)
     }
 
