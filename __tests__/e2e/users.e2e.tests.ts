@@ -117,7 +117,7 @@ describe(ROUTERS_PATH_ENUM.USERS, () => {
 
     it('- Should return new pair accessToken and refreshToken with correct data', async () => {
         const {accessToken, newRefreshToken} = await usersTestsUtils.returnNewPairTokens(usersRefreshTokens.device1);
-        oldToken = usersAccessTokens.device1;
+        oldToken = usersRefreshTokens.device1;
         usersAccessTokens.device1 = accessToken;
         usersRefreshTokens.device1 = newRefreshToken;
     });

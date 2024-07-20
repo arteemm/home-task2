@@ -49,7 +49,7 @@ export const jwtService = {
         const id = req.userId as string;
         const currentRefreshToken = req.cookies.refreshToken as string;
         const result = await this.getUserDataByToken(currentRefreshToken);
-        const refreshTokenCreateTimestamp = Date.now(); 
+        const refreshTokenCreateTimestamp = Date.now();
         const {accessToken, refreshToken} = await this.createJWT(id, result!.deviceId, refreshTokenCreateTimestamp);
         const newEntity = jwtManager.createNewEntity(req, refreshTokenCreateTimestamp, result!.deviceId);
         await authRepository.updateCurrencyDeviceEntity(id, newEntity);
