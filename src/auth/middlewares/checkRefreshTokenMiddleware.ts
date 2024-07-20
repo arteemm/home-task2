@@ -16,7 +16,7 @@ export const checkRefreshTokenMiddleware = async (req: Request, res: Response, n
             return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)
         }
         const userId = result.userId.toString() as string;
-        const isActiveDevice = await securityQueryRepository.checkActiveDevice(userId, result?.deviceId)
+        const isActiveDevice = await securityQueryRepository.checkDeviceByData(userId, result?.deviceId, new Date(result?.iat).toJSON())
 
         if (!isActiveDevice) {
             return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)

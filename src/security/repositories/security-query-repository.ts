@@ -33,8 +33,12 @@ export const securityQueryRepository = {
         return result;
     },
 
-    async checkActiveDevice(userId: string, deviceId: string) {
-        const device = await authCollection.findOne({userId: userId, 'sessions.deviceId': deviceId});
+    async checkDeviceByData(userId: string, deviceId: string, lastActiveDate: string) {
+        const device = await authCollection.findOne({
+            userId: userId,
+            'sessions.deviceId': deviceId,
+            'sessions.lastActiveDate': lastActiveDate,
+        });
 
         return device ? true : false;
     },
@@ -42,7 +46,13 @@ export const securityQueryRepository = {
     async getAllActiveSessions() {
         const devices = await authCollection.find({}).toArray();
         return devices;
-    }
+    },
 
+    async checkActiveDevice(userId: string, deviceId: string) {
+        const device = await authCollection.findOne({
+            userId: userId, 'sessions.deviceId': deviceId,
+        });
 
+        return device ? true : false;
+    },
 };
