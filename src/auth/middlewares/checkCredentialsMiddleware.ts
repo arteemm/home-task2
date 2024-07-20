@@ -11,34 +11,35 @@ const attempts: {[keyof: string] : {
 export const checkCredentialsMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const result = validationResult(req);
     const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress) as string;
+    const url = `${ip}`+`${req.originalUrl}`;
 
     if (result.isEmpty()) {
         const user = await usersService.checkCredentials(req.body.loginOrEmail, req.body.password);
         if (!user) {
-            if (!attempts[ip+req.originalUrl]?.countAttempts) {
-                attempts[ip+req.originalUrl] = {
+            if (!attempts[url]?.countAttempts) {
+                attempts[url] = {
                     timeFirstAttempt: Date.now(),
                     countAttempts: 1,
                 }
             } else {
-                attempts[ip+req.originalUrl].countAttempts++
+                attempts[url].countAttempts++
             }
-            if (attempts[ip+req.originalUrl].countAttempts > 5 && (Date.now() - attempts[ip+req.originalUrl].timeFirstAttempt) < 10000) {
+            if (attempts[url].countAttempts > 5 && (Date.now() - attempts[url].timeFirstAttempt) < 10000) {
                 return res.send(HTTP_STATUS_CODES.RATE_LIMITING)
             }
 
             return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)
         }
-        if (attempts[ip+req.originalUrl].countAttempts > 5 && (Date.now() - attempts[ip+req.originalUrl].timeFirstAttempt) < 10000) {
+        if (attempts[url].countAttempts > 5 && (Date.now() - attempts[url].timeFirstAttempt) < 10000) {
             return res.send(HTTP_STATUS_CODES.RATE_LIMITING)
         }
 
-        attempts[ip+req.originalUrl] ? attempts[ip+req.originalUrl].countAttempts = 0 : attempts[ip+req.originalUrl];
+        attempts[url] ? attempts[url].countAttempts = 0 : attempts[url];
         req.userId = user._id.toString();
         return next();
     }
 
-    if (attempts[ip+req.originalUrl].countAttempts > 5 && (Date.now() - attempts[ip+req.originalUrl].timeFirstAttempt) < 10000) {
+    if (attempts[url].countAttempts > 5 && (Date.now() - attempts[url].timeFirstAttempt) < 10000) {
         return res.send(HTTP_STATUS_CODES.RATE_LIMITING)
     }
 
