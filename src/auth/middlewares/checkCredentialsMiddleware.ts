@@ -30,7 +30,7 @@ export const checkCredentialsMiddleware = async (req: Request, res: Response, ne
 
             return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)
         }
-        if (attempts[url].countAttempts > 5 && (Date.now() - attempts[url].timeFirstAttempt) < 10000) {
+        if (attempts[url]?.countAttempts > 5 && (Date.now() - attempts[url].timeFirstAttempt) < 10000) {
             return res.send(HTTP_STATUS_CODES.RATE_LIMITING)
         }
 
@@ -39,7 +39,7 @@ export const checkCredentialsMiddleware = async (req: Request, res: Response, ne
         return next();
     }
 
-    if (attempts[url].countAttempts > 5 && (Date.now() - attempts[url].timeFirstAttempt) < 10000) {
+    if (attempts[url]?.countAttempts > 5 && (Date.now() - attempts[url].timeFirstAttempt) < 10000) {
         return res.send(HTTP_STATUS_CODES.RATE_LIMITING)
     }
 
