@@ -10,8 +10,10 @@ export const checkAttemptsRegistrationMiddleware = async (req: Request, res: Res
     const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress) as string;
     const url = `${ip}`+`${req.originalUrl}`;
 
-    if ((Date.now() - attempts[url]?.timeFirstAttempt) > 12000) {
-        attempts[url] ? attempts[url].countAttempts = 0 : attempts[url];
+    for (let attempt in attempts) {
+        if ((Date.now() - attempts[attempt]?.timeFirstAttempt) < 10000) {
+            delete attempts[attempt];
+        }
     }
 
     if (!attempts[url]?.countAttempts) {

@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken';
 import { settings } from '../../settings';
 import { UserSessionByDeviceType } from '../types';
 import { Request } from 'express';
-import bcrypt from 'bcryptjs';
 import { createHash } from 'crypto';
 
 export const jwtManager= {
