@@ -13,7 +13,7 @@ export const checkAttemptsRegistrationMiddleware = async (req: Request, res: Res
     attempts = attempts.filter((item)=> (item.expirationDate - Date.now()) > 0);
     attempts.push({
         url,
-        expirationDate: Date.now() + 15000,
+        expirationDate: Date.now() + 20000,
     });
 
     const result = attempts.filter(item => item.url === url);
