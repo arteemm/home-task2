@@ -11,7 +11,7 @@ export const checkAttemptsRegistrationMiddleware = async (req: Request, res: Res
     const url = `${ip}`+`${req.originalUrl}`;
 
     for (let attempt in attempts) {
-        if ((Date.now() - attempts[attempt]?.timeFirstAttempt) < 10000) {
+        if ((Date.now() - attempts[attempt]?.timeFirstAttempt) < 20000) {
             delete attempts[attempt];
         }
     }
