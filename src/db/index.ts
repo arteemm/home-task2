@@ -3,8 +3,8 @@ import mongoose from 'mongoose';
 
 dotenv.config();
 
-// const mongoURI = process.env.MONGO_URL || 'mongodb://0.0.0.0:27017';
-const mongoURI =  'mongodb://0.0.0.0:27017';
+const mongoURI = process.env.MONGO_URL || 'mongodb://0.0.0.0:27017';
+// const mongoURI =  'mongodb://0.0.0.0:27017';
 
 const dbName = 'home-task';
 
