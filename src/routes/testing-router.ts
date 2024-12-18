@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { blogsService } from '../domain/blogs-service';
-import { postsService } from '../domain/posts-service';
+import { blogsService } from '../blogs/domains';
+import { postsService } from '../posts/domains';
 import { usersService } from '../users/services';
-import { feedbackService } from '../domain/feedbacks-service';
+import { feedbackService } from '../comments/domains';
 import { authService } from '../auth/services';
 import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
 

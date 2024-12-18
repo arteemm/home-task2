@@ -1,0 +1,232 @@
+import request from 'supertest';
+import { app } from '../../src/app';
+import dotenv from 'dotenv';
+import { BlogItemType } from '../../src/blogs/types';
+import { PostItemType } from '../../src/posts/types';
+import { CommentType } from '../../src/comments/types';
+import { MongoClient } from 'mongodb';
+import { ROUTERS_PATH_ENUM } from '../../src/constants/routersPath';
+import { postsUtils } from '../utils/posts.utils';
+import { blogsUtils } from '../utils/blogs.utils';
+import { HTTP_STATUS_CODES } from '../../src/constants/httpStatusCodes';
+import mongoose from 'mongoose';
+import { usersTestsUtils } from '../utils/usersTests.utils';
+import { authTestsUtils } from '../utils/authTests.utils';
+
+dotenv.config();
+
+
+const dbName = 'home-task';
+const mongoURI = `mongodb://0.0.0.0:27017/${dbName}`;
+
+describe(ROUTERS_PATH_ENUM.POSTS, () => {
+    let newEntity: BlogItemType | null = null;
+    let newPost: PostItemType | null = null;
+    let newComment: CommentType | null = null;
+    const client = new MongoClient(mongoURI);
+    const credentials = {
+        login: 'admin',
+        password: 'qwerty',
+    };
+
+    const userCredentials = {
+        login: 'qqqqqq',
+        password: '111111',
+        email: "example@example.com",
+    };
+
+    let userToken: string = '';
+
+
+    beforeAll(async () => {
+       await mongoose.connect(mongoURI);
+       await request(app).delete(ROUTERS_PATH_ENUM.TESTING + '/all-data').expect(204);
+    });
+
+    afterAll(async () => {
+       await mongoose.connection.close();
+    });
+
+
+    it('GET products = []', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.POSTS).expect({ pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] })
+    });
+
+    it('- BLOG should create the blog with correct data', async function () {
+        const correctEntity = {name: 'aaaaa', description: 'bbbbb', websiteUrl: 'https://wiOhjnFtVPXFl2wdSPQTMmeIWDggPKyLR4bJyoEAALOquWakn_se7fHTC4kB8UDV-03.dln-wTOL3hwwWnk2Q-klOUM2'};
+
+        const result = await blogsUtils.createBlog(correctEntity, HTTP_STATUS_CODES.SUCCESS_CREATED, credentials);
+        expect(result.body).toEqual({
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            isMembership: expect.any(Boolean) ,
+            ...correctEntity
+        });
+
+        newEntity = result.body;
+
+        const res = await request(app).get(ROUTERS_PATH_ENUM.BLOGS);
+        expect(res.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [{
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            isMembership: expect.any(Boolean) ,
+            ...correctEntity
+        }] })
+    });
+
+    it('- POST does not create the posts with incorrect data ', async function () {
+        const incorrectEntity = {content: '', title: 'ccc', shortDescription: 'ssss', blogId: newEntity!.id};
+        const errorsObj = {
+            'errorsMessages': [
+                { message: 'Invalid value', field: 'content' },
+        ]};
+
+        const result = await postsUtils.createPost(incorrectEntity, HTTP_STATUS_CODES.BAD_REQUEST, credentials);
+        expect(result.body).toEqual(errorsObj);
+
+
+        const res = await request(app).get(ROUTERS_PATH_ENUM.POSTS);
+        expect(res.body).toEqual({ pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] })
+    });
+
+    it('- POST should create the post with correct data', async function () {
+        const correctEntity = {content: 'eeee', title: 'ccc', shortDescription: 'ssss', blogId: newEntity!.id};
+
+        const result = await postsUtils.createPost(correctEntity, HTTP_STATUS_CODES.SUCCESS_CREATED, credentials);
+        expect(result.body).toEqual({
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            blogName: newEntity?.name,
+            ...correctEntity
+        });
+
+        newPost = result.body;
+
+        const res = await request(app).get(ROUTERS_PATH_ENUM.POSTS);
+        expect(res.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [{
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            blogName: newEntity?.name,
+            ...correctEntity
+        }] })
+    });
+
+    it('- POST should return Unauthorized', async function () {
+        const correctEntity = {content: 'eeee', title: 'ccc', shortDescription: 'ssss', blogId: newEntity!.id};
+
+        const result = await postsUtils.createPost(correctEntity, HTTP_STATUS_CODES.UNAUTHORIZED, {login: 'sss', password: 'qwerty'});
+        expect(result.body).toEqual({});
+
+        const res = await request(app).get(ROUTERS_PATH_ENUM.POSTS);
+        expect(res.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [{
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            blogName: newEntity?.name,
+            ...correctEntity
+        }] })
+    });
+
+    it('- Should login user with correct data', async () => {
+        const createdUser = await usersTestsUtils.createUser(userCredentials, HTTP_STATUS_CODES.SUCCESS_CREATED);
+        const loginUser = await authTestsUtils.loginUser({loginOrEmail: userCredentials.login, password: userCredentials.password}, HTTP_STATUS_CODES.SUCCESS_RESPONSE, 'Iphone');
+        userToken = loginUser.body.accessToken;
+        expect(userToken).toEqual(expect.any(String));
+    });
+
+    it('- POST should create the comment by post id ', async function () {
+        const correctEntity = { content: 'stringstringstringst' };
+
+        const result = await postsUtils.createComment(newPost!.id, correctEntity, HTTP_STATUS_CODES.SUCCESS_CREATED, userToken);
+        expect(result.body).toEqual({
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            commentatorInfo: {
+                userId: expect.any(String),
+                userLogin: expect.any(String),
+              },
+            ...correctEntity
+        });
+
+        newComment = result.body;
+    });
+
+    it('- POST shouldn\'t create with incorrect data ', async function () {
+        const incorrectEntity = { content: '111' };
+
+        const result = await postsUtils.createComment(newPost!.id, incorrectEntity, HTTP_STATUS_CODES.BAD_REQUEST, userToken);
+        expect(result.body).toEqual({
+            'errorsMessages': [
+                { message: 'Invalid value', field: 'content' },
+            ]
+        });
+    });
+
+    it('- POST shouldn\'t create with incorrect id ', async function () {
+        const correctEntity = { content: '11122222222fsdfsdfsdfsdfsdfsd' };
+
+        const result = await postsUtils.createComment('11111', correctEntity, HTTP_STATUS_CODES.NOT_FOUND, userToken);
+        expect(result.body).toEqual({});
+    });
+
+    it('- POST shouldn\'t create with incorrect token ', async function () {
+        const correctEntity = { content: '11122222222fsdfsdfsdfsdfsdfsd' };
+
+        const result = await postsUtils.createComment(newPost!.id, correctEntity, HTTP_STATUS_CODES.UNAUTHORIZED, 'userToken');
+        expect(result.body).toEqual({});
+    });
+
+    it('GET shouldn\'t return comments by incorrect id ', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.POSTS + `1111/comments`).expect(HTTP_STATUS_CODES.NOT_FOUND);
+    });
+
+    it('GET should return all posts ', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.POSTS).expect({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [{
+            ...newPost
+        }] })
+    });
+
+    it('GET should return comments by post id', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.POSTS + `/${newPost?.id}/comments`).expect({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [{
+            ...newComment
+        }] })
+    });
+
+    it('GET should return post by post id', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.POSTS + `/${newPost?.id}`).expect({...newPost})
+    });
+
+    it('GET should return post by post id with incorrect id', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.POSTS + `/1111`).expect(HTTP_STATUS_CODES.NOT_FOUND)
+    });
+
+    it('- PUT should update the post by post id ', async function () {
+        const correctEntity = { content: 'qqq', title: 'rrrrr', shortDescription: 'nnnnnn', blogId: newEntity!.id };
+
+        const result = await postsUtils.updatePost(newPost!.id, correctEntity, HTTP_STATUS_CODES.SUCCESS_NO_CONTENT, credentials);
+        expect(result.body).toEqual({});
+
+        newPost!.content  = correctEntity.content;
+        newPost!.title = correctEntity.title;
+        newPost!.shortDescription = correctEntity.shortDescription;
+    });
+
+    it('GET should return posts by id ', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.POSTS).expect({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [newPost] })
+    });
+
+    it('- DELETE should remove the post by post id ', async function () {
+
+        const result = await postsUtils.deletePost(newPost!.id, HTTP_STATUS_CODES.SUCCESS_NO_CONTENT, credentials);
+        expect(result.body).toEqual({});
+    });
+
+    it('GET should return posts by id', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.POSTS).expect({ pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] })
+    });
+
+    it('- DELETE should return 404 with incorrect id ', async function () {
+
+        const result = await postsUtils.deletePost(newPost!.id, HTTP_STATUS_CODES.NOT_FOUND, credentials);
+        expect(result.body).toEqual({});
+    });
+});

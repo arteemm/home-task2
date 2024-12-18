@@ -1,0 +1,209 @@
+import request from 'supertest';
+import { app } from '../../src/app';
+import dotenv from 'dotenv';
+import { BlogItemType } from '../../src/blogs/types';
+import { PostItemType } from '../../src/posts/types';
+import { CommentResponseType } from '../../src/comments/types';
+import { MongoClient } from 'mongodb';
+import { ROUTERS_PATH_ENUM } from '../../src/constants/routersPath';
+import { postsUtils } from '../utils/posts.utils';
+import { blogsUtils } from '../utils/blogs.utils';
+import { HTTP_STATUS_CODES } from '../../src/constants/httpStatusCodes';
+import mongoose from 'mongoose';
+import { usersTestsUtils } from '../utils/usersTests.utils';
+import { authTestsUtils } from '../utils/authTests.utils';
+
+dotenv.config();
+
+
+const dbName = 'home-task';
+const mongoURI = `mongodb://0.0.0.0:27017/${dbName}`;
+
+describe(ROUTERS_PATH_ENUM.COMMENTS, () => {
+    let newEntity: BlogItemType | null = null;
+    let newPost: PostItemType | null = null;
+    let newComment: CommentResponseType | null = null;
+    const client = new MongoClient(mongoURI);
+    const credentials = {
+        login: 'admin',
+        password: 'qwerty',
+    };
+
+    const userCredentials = {
+        login: 'qqqqqq',
+        password: '111111',
+        email: "example@example.com",
+    };
+
+    let userToken: string = '';
+    let anotherUserToken: string = ''
+
+    beforeAll(async () => {
+       await mongoose.connect(mongoURI);
+       await request(app).delete(ROUTERS_PATH_ENUM.TESTING + '/all-data').expect(204);
+    });
+
+    afterAll(async () => {
+       await mongoose.connection.close();
+    });
+
+
+    it('- BLOG should create the blog with correct data', async function () {
+        const correctEntity = {name: 'aaaaa', description: 'bbbbb', websiteUrl: 'https://wiOhjnFtVPXFl2wdSPQTMmeIWDggPKyLR4bJyoEAALOquWakn_se7fHTC4kB8UDV-03.dln-wTOL3hwwWnk2Q-klOUM2'};
+
+        const result = await blogsUtils.createBlog(correctEntity, HTTP_STATUS_CODES.SUCCESS_CREATED, credentials);
+        expect(result.body).toEqual({
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            isMembership: expect.any(Boolean) ,
+            ...correctEntity
+        });
+
+        newEntity = result.body;
+
+        const res = await request(app).get(ROUTERS_PATH_ENUM.BLOGS);
+        expect(res.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [{
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            isMembership: expect.any(Boolean) ,
+            ...correctEntity
+        }] })
+    });
+
+    it('- POST should create the post with correct data', async function () {
+        const correctEntity = {content: 'eeee', title: 'ccc', shortDescription: 'ssss', blogId: newEntity!.id};
+
+        const result = await postsUtils.createPost(correctEntity, HTTP_STATUS_CODES.SUCCESS_CREATED, credentials);
+        expect(result.body).toEqual({
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            blogName: newEntity?.name,
+            ...correctEntity
+        });
+
+        newPost = result.body;
+
+        const res = await request(app).get(ROUTERS_PATH_ENUM.POSTS);
+        expect(res.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [{
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            blogName: newEntity?.name,
+            ...correctEntity
+        }] })
+    });
+
+    it('- Should login user with correct data', async () => {
+        const createdUser = await usersTestsUtils.createUser(userCredentials, HTTP_STATUS_CODES.SUCCESS_CREATED);
+        const loginUser = await authTestsUtils.loginUser({loginOrEmail: userCredentials.login, password: userCredentials.password}, HTTP_STATUS_CODES.SUCCESS_RESPONSE, 'Iphone');
+        userToken = loginUser.body.accessToken;
+        expect(userToken).toEqual(expect.any(String));
+    });
+
+    it('- POST should create the comment by post id ', async function () {
+        const correctEntity = { content: 'stringstringstringst' };
+
+        const result = await postsUtils.createComment(newPost!.id, correctEntity, HTTP_STATUS_CODES.SUCCESS_CREATED, userToken);
+        expect(result.body).toEqual({
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            commentatorInfo: {
+                userId: expect.any(String),
+                userLogin: expect.any(String),
+              },
+            ...correctEntity
+        });
+
+        newComment = result.body;
+    });
+
+    it('GET should return comments by id', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.COMMENTS + `/${newComment?.id}`).expect({...newComment})
+    });
+
+    it('GET should return 404 by incorrect id', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.COMMENTS + `/1111`).expect(HTTP_STATUS_CODES.NOT_FOUND)
+    });
+
+    it('- PUT should update the comment by id ', async function () {
+        const correctEntity = { content: 'qqq55555iiiiihhhhhbbbbbbbb' };
+
+        const result = await request(app)
+        .put(ROUTERS_PATH_ENUM.COMMENTS + `/${newComment?.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(correctEntity)
+        .expect(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
+
+        newComment!.content  = correctEntity.content;
+    });
+
+    it('GET should return new comment by id ', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.COMMENTS + `/${newComment?.id}`).expect({...newComment})
+    });
+
+    it('- PUT should return bad request the comment by id ', async function () {
+        const correctEntity = { content: 111 };
+
+        const result = await request(app)
+        .put(ROUTERS_PATH_ENUM.COMMENTS + `/${newComment?.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(correctEntity)
+        .expect(HTTP_STATUS_CODES.BAD_REQUEST);
+    });
+
+    it('- PUT should return 404 by incorrect id ', async function () {
+        const correctEntity = { content: 'jjjjtttertrbdfgdbgsdfgbsdgbsgbsg' };
+
+        const result = await request(app)
+        .put(ROUTERS_PATH_ENUM.COMMENTS + `/22`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(correctEntity)
+        .expect(HTTP_STATUS_CODES.NOT_FOUND);
+    });
+
+    it('- PUT should return unauthorized by incorrect token ', async function () {
+        const correctEntity = { content: 'jjjjtttertrbdfgdbgsdfgbsdgbsgbsg' };
+
+        const result = await request(app)
+        .put(ROUTERS_PATH_ENUM.COMMENTS + `/${newComment?.id}`)
+        .set('Authorization', `Bearer ${111}`)
+        .send(correctEntity)
+        .expect(HTTP_STATUS_CODES.UNAUTHORIZED);
+    });
+
+    it('- Should login another user with correct data', async () => {
+        const createdUser = await usersTestsUtils.createUser({login: 'ssssssss', password: '12345678', email: 'rambler@mail.ru'}, HTTP_STATUS_CODES.SUCCESS_CREATED);
+        const loginUser = await authTestsUtils.loginUser({loginOrEmail: 'ssssssss', password: '12345678'}, HTTP_STATUS_CODES.SUCCESS_RESPONSE, 'Iphone');
+        anotherUserToken = loginUser.body.accessToken;
+        expect(anotherUserToken).toEqual(expect.any(String));
+    });
+
+    it('- DELETE should return 403 	If try delete the comment that is not your own ', async function () {
+
+        const result = await request(app)
+        .delete(ROUTERS_PATH_ENUM.COMMENTS + `/${newComment?.id}`)
+        .set('Authorization', `Bearer ${anotherUserToken}`)
+        .expect(HTTP_STATUS_CODES.FORBIDDEN);
+
+        expect(result.body).toEqual({});
+    });
+
+    it('- DELETE should remove the comment by comment id ', async function () {
+
+        const result = await request(app)
+        .delete(ROUTERS_PATH_ENUM.COMMENTS + `/${newComment?.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
+
+        expect(result.body).toEqual({});
+    });
+
+    it('- DELETE should return 404 with incorrect id ', async function () {
+
+        const result = await request(app)
+        .delete(ROUTERS_PATH_ENUM.COMMENTS + `/${newComment?.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(HTTP_STATUS_CODES.NOT_FOUND);
+
+        expect(result.body).toEqual({});
+    });
+});

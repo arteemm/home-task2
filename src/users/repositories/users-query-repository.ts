@@ -1,16 +1,5 @@
-import { UsersQueryParams, UserItemsResponse } from '../types/usersTypes';
-import { usersCollection } from '../../db';
-import { ObjectId } from 'mongodb';
-
-const options = {
-    projection: {
-        _id: 0,
-        id: '$_id',
-        email: '$accountData.email',
-        login: '$accountData.userName',
-        createdAt: '$accountData.createdAt'
-    }
-};
+import { UsersQueryParams, UserItemsResponse } from '../types';
+import { UserModel } from '../schemas';
 
 const setDirection = (sortDirection: 'asc' | 'desc') => {
     if (sortDirection === 'asc') {
@@ -49,37 +38,42 @@ export const usersQueryRepository = {
         } = postsQueryObj;
         const condition = getCondition(searchLoginTerm, searchEmailTerm);
         const direction = setDirection(sortDirection);
-        const totalCount = await usersCollection.countDocuments(condition);
+        const totalCount = await UserModel.countDocuments(condition);
         const pagesCount = Math.ceil(totalCount / pageSize);
-        const users = await (usersCollection
-            .find(condition, options)
+        const users = await (UserModel
+            .find(condition)
             .sort({[sortBy]: direction})
             .skip( pageNumber > 0 ? ( ( pageNumber - 1 ) * pageSize ) : 0 )
-            .limit( +pageSize )
-            .toArray());
+            .limit( +pageSize ));
         
         return {pagesCount: +pagesCount, page: +pageNumber, pageSize: +pageSize, totalCount, items: users};
     },
 
     async checkEmail (email: string) {
-        if (await usersCollection.findOne({'accountData.email': email})) {
+        if (await UserModel.findOne({'accountData.email': email})) {
             return false;
         }
         return true;
     },
 
     async checkLogin (login: string) {
-        if (await usersCollection.findOne({'accountData.userName': login})) {
+        if (await UserModel.findOne({'accountData.userName': login})) {
             return false;
         }
         return true;
     },
 
     async checkConfirmEmail(email: string) {
-        const user = await usersCollection.findOne({'accountData.email': email});
+        const user = await UserModel.findOne({'accountData.email': email});
         if (!user || user.emailConfirmation.isConfirmed) {
             return true;
         }
         return false;
     },
+
+    async getUserRecoveryToken (code: String) {
+        const user = await UserModel.findOne({'recoveryCode:': code});
+
+        return user;
+    }
 };

@@ -1,9 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { blogsService } from '../domain/blogs-service';
-import { postsService } from '../domain/posts-service';
+import { blogsService } from '../blogs/domains';
+import { postsService } from '../posts/domains';
 import { body } from 'express-validator';
-import { PostsQueryParams } from '../types/postsTypes';
-import { BlogsQueryParams } from '../types/blogsTypes';
+import { PostsQueryParams } from '../posts/types';
+import { BlogsQueryParams } from '../blogs/types';
 import { errorMiddleware } from '../middlewares/error-middleware';
 import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
 import { validationAuthMiddleware } from '../middlewares/validation-auth-middleware';

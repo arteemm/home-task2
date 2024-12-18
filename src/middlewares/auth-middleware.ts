@@ -5,14 +5,12 @@ import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(' ')[1];
-
     if (token) {
         const result = await jwtService.getUserDataByToken(token);
-        
         if (result) {
             const user = await usersService.getUserById(result.userId);
             if (user) {
-                req.userId = user.id.toString();
+                req.userId = result.userId.toString();
                 next();
                 return;
             }

@@ -1,0 +1,185 @@
+import request from 'supertest';
+import { app } from '../../src/app';
+import dotenv from 'dotenv';
+import { BlogItemType } from '../../src/blogs/types';
+import { PostItemType } from '../../src/posts/types';
+import { MongoClient } from 'mongodb';
+import { ROUTERS_PATH_ENUM } from '../../src/constants/routersPath';
+import { blogsUtils } from '../utils/blogs.utils';
+import { HTTP_STATUS_CODES } from '../../src/constants/httpStatusCodes';
+import mongoose from 'mongoose';
+
+dotenv.config();
+
+
+const dbName = 'home-task';
+const mongoURI = `mongodb://0.0.0.0:27017/${dbName}`;
+
+describe(ROUTERS_PATH_ENUM.BLOGS, () => {
+    let newEntity: BlogItemType | null = null;
+    let newPost:  PostItemType | null = null;
+    const client = new MongoClient(mongoURI);
+    const credentials = {
+        login: 'admin',
+        password: 'qwerty',
+    }
+
+    beforeAll(async () => {
+       await mongoose.connect(mongoURI);
+       await request(app).delete(ROUTERS_PATH_ENUM.TESTING + '/all-data').expect(204);
+    });
+
+    afterAll(async () => {
+       await mongoose.connection.close();
+    });
+
+
+    it('GET products = []', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.BLOGS).expect({ pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] })
+    });
+
+    it('- POST does not create the video with incorrect data (no title, no author)', async function () {
+        const incorrectEntity = {name: '', description: '', websiteUrl: ''};
+        const errorsObj = {
+            'errorsMessages': [
+                { message: 'Invalid value', field: 'name' },
+                { message: 'Invalid value', field: 'description' },
+                { message: 'Invalid value', field: 'websiteUrl' }
+        ]};
+
+        const result = await blogsUtils.createBlog(incorrectEntity, HTTP_STATUS_CODES.BAD_REQUEST, credentials);
+        expect(result.body).toEqual(errorsObj);
+
+
+        const res = await request(app).get(ROUTERS_PATH_ENUM.BLOGS);
+        expect(res.body).toEqual({ pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] })
+    });
+
+    it('- POST should create the video with correct data', async function () {
+        const correctEntity = {name: 'aaaaa', description: 'bbbbb', websiteUrl: 'https://wiOhjnFtVPXFl2wdSPQTMmeIWDggPKyLR4bJyoEAALOquWakn_se7fHTC4kB8UDV-03.dln-wTOL3hwwWnk2Q-klOUM2'};
+
+        const result = await blogsUtils.createBlog(correctEntity, HTTP_STATUS_CODES.SUCCESS_CREATED, credentials);
+        expect(result.body).toEqual({
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            isMembership: expect.any(Boolean) ,
+            ...correctEntity
+        });
+
+        newEntity = result.body;
+
+        const res = await request(app).get(ROUTERS_PATH_ENUM.BLOGS);
+        expect(res.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [{
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            isMembership: expect.any(Boolean) ,
+            ...correctEntity
+        }] })
+    });
+
+    it('- POST should return Unauthorized', async function () {
+        const correctEntity = {name: 'aaaaa', description: 'bbbbb', websiteUrl: 'https://wiOhjnFtVPXFl2wdSPQTMmeIWDggPKyLR4bJyoEAALOquWakn_se7fHTC4kB8UDV-03.dln-wTOL3hwwWnk2Q-klOUM2'};
+
+        const result = await blogsUtils.createBlog(correctEntity, HTTP_STATUS_CODES.UNAUTHORIZED, {login: 'sss', password: 'qwerty'});
+        expect(result.body).toEqual({});
+
+        const res = await request(app).get(ROUTERS_PATH_ENUM.BLOGS);
+        expect(res.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [{
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            isMembership: expect.any(Boolean) ,
+            ...correctEntity
+        }] })
+    });
+
+    it('GET shouldn\'t return posts by id video ', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.BLOGS + `1111/posts`).expect(HTTP_STATUS_CODES.NOT_FOUND);
+    });
+
+    it('- POST should create the post by blog id ', async function () {
+        const correctEntity = { title: 'string', shortDescription: 'string', content: 'string'};
+
+        const result = await blogsUtils.createPost(newEntity!.id, correctEntity, HTTP_STATUS_CODES.SUCCESS_CREATED, credentials);
+        expect(result.body).toEqual({
+            id: expect.any(String),
+            createdAt:  expect.stringMatching(/\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/),
+            blogId: newEntity!.id,
+            blogName: newEntity?.name,
+            ...correctEntity
+        });
+
+        newPost = result.body;
+    });
+
+    it('GET should return posts by id video ', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.BLOGS + `/${newEntity?.id}/posts`).expect({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [{
+            ...newPost
+        }] })
+    });
+
+    it('- POST does not create the video with incorrect data', async function () {
+        const incorrectEntity =   { title: '', shortDescription: '', content: "string" };
+        const errorsObj = {
+            'errorsMessages': [
+                { message: 'Invalid value', field: 'title' },
+                { message: 'Invalid value', field: 'shortDescription' },
+        ]};
+
+        const result = await blogsUtils.createPost(newEntity!.id ,incorrectEntity, HTTP_STATUS_CODES.BAD_REQUEST, credentials);
+        expect(result.body).toEqual(errorsObj);
+
+
+        const res = await request(app).get(ROUTERS_PATH_ENUM.BLOGS + `/${newEntity?.id}/posts`);
+        expect(res.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [newPost] })
+    });
+
+    it('- POST should return 404 with incorrect id', async function () {
+        const incorrectEntity =   { title: 'mkk', shortDescription: 'kkk', content: "string" };
+
+        const result = await blogsUtils.createPost('555' ,incorrectEntity, HTTP_STATUS_CODES.NOT_FOUND, credentials);
+        expect(result.body).toEqual({});
+
+
+        const res = await request(app).get(ROUTERS_PATH_ENUM.BLOGS + `/${newEntity?.id}/posts`);
+        expect(res.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [newPost] })
+    });
+
+    it('GET should return blog by id ', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.BLOGS + `/${newEntity?.id}`).expect({...newEntity});
+    });
+
+    it('GET should return 404 with incorrect id ', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.BLOGS + `/111`).expect(HTTP_STATUS_CODES.NOT_FOUND);
+    });
+
+    it('- PUT should update the blog by blog id ', async function () {
+        const correctEntity = { name: 'number', description: 'number', websiteUrl: 'https://ozYqQswvNYH7l90WwuQVtjdKy8a7CN6qcnE2PK-7JT.esYRDwH83_cTLSOSS4c9HeCsZ80OWi5yk7Z0mIBGailalal'};
+
+        const result = await blogsUtils.updateBlog(newEntity!.id, correctEntity, HTTP_STATUS_CODES.SUCCESS_NO_CONTENT, credentials);
+        expect(result.body).toEqual({});
+
+        newEntity!.name  = correctEntity.name;
+        newEntity!.description = correctEntity.description;
+        newEntity!.websiteUrl = correctEntity.websiteUrl;
+    });
+
+    it('GET should return posts by id video ', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.BLOGS).expect({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [newEntity] })
+    });
+
+    it('- DELETE should remove the blog by blog id ', async function () {
+
+        const result = await blogsUtils.deleteBlog(newEntity!.id, HTTP_STATUS_CODES.SUCCESS_NO_CONTENT, credentials);
+        expect(result.body).toEqual({});
+    });
+
+    it('GET should return posts by id video ', async () => {
+        await request(app).get(ROUTERS_PATH_ENUM.BLOGS).expect({ pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] })
+    });
+
+    it('- DELETE should return 404 with incorrect id ', async function () {
+
+        const result = await blogsUtils.deleteBlog(newEntity!.id, HTTP_STATUS_CODES.NOT_FOUND, credentials);
+        expect(result.body).toEqual({});
+    });
+});

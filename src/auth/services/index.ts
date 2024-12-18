@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { usersService } from '../../users/services/';
 import { userRepository } from '../../users/repositories/users-repository';
 import { emailAdapter } from '../adapters/email-adapter';
-import { UserQueryType } from '../../users/types/usersTypes';
+import { UserQueryType } from '../../users/types';
 import { authRepository } from '../repositories';
 
 
@@ -37,6 +37,22 @@ export const authService = {
 
         const result = await userRepository.updateConfirmation(user._id);
         return result;
+    },
+
+    async passwordRecovery(email: string) {
+        await usersService.setNewRecoveryCode(email);
+        const user = await userRepository.findByLoginOrEmail(email);
+        const recoveryCode = user ? user.recoveryCode : '12345';
+
+        const message = `
+            <h1>Password recovery</h1>
+            <p>To finish password recovery please follow the link below:
+                <a href='https://somesite.com/password-recovery?recoveryCode=${recoveryCode}'>recovery password</a>
+            </p>
+        `;
+        const subject = 'password recovery';
+        await emailAdapter.sendEmail(email, subject, message);
+        return true;
     },
 
     async resendingEmail(email: string) {

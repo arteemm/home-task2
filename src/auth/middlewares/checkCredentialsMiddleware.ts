@@ -15,6 +15,7 @@ export const checkCredentialsMiddleware = async (req: Request, res: Response, ne
 
     if (result.isEmpty()) {
         const user = await usersService.checkCredentials(req.body.loginOrEmail, req.body.password);
+
         if (!user) {
             if (!attempts[url]?.countAttempts) {
                 attempts[url] = {

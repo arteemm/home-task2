@@ -1,4 +1,4 @@
-import { UserQueryType, UserType } from '../types/usersTypes';
+import { UserQueryType, UserType } from '../types';
 import { ObjectId } from 'mongodb';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,7 +16,7 @@ export const usersManager= {
                 email: reqObj.email,
                 passwordHash,
                 salt,
-                createdAt: new Date(),
+                createdAt: new Date().toJSON(),
             },
             emailConfirmation: {
                 confirmationCode: uuidv4(),
@@ -27,6 +27,7 @@ export const usersManager= {
                 isConfirmed: false,
             },
             usedTokens: [],
+            recoveryCode: '',
         };
 
         return newUser;

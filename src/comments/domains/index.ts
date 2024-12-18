@@ -1,7 +1,7 @@
-import { feedbacksRepository } from '../repositories/feedbacks-repository';
-import { CommentRequestType, CommentType, CommentResponseType } from '../types/commentsTypes';
+import { feedbacksRepository } from '../repositories';
+import { CommentRequestType, CommentType, CommentResponseType } from '../types';
 import { ObjectId } from 'mongodb';
-import { usersService } from '../users/services';
+import { usersService } from '../../users/services';
 
 export const feedbackService = {
 
@@ -14,7 +14,6 @@ export const feedbackService = {
         const date = new Date();
         const id = new ObjectId(userId);
         const user = await usersService.getUserById(id);
-
         const newComment: CommentType = {
             _id: new ObjectId(),
             content: reqObj.content,
@@ -31,8 +30,9 @@ export const feedbackService = {
     },
     async deleteComment (id: string): Promise<boolean> {
         const commentId = new ObjectId(id);
-        return await feedbacksRepository.deleteComment(commentId);
-        
+        const result = await feedbacksRepository.deleteComment(commentId);
+
+        return result;
     },
     async deleteAllData () {
         return await feedbacksRepository.deleteAllData();

@@ -13,7 +13,7 @@ export type UserType = {
         email: string;
         passwordHash: string;
         salt: string;
-        createdAt: Date;
+        createdAt: string;
     };
     emailConfirmation: {
         confirmationCode: string;
@@ -21,6 +21,7 @@ export type UserType = {
         isConfirmed: boolean;
     };
     usedTokens: string[];
+    recoveryCode: string;
 };
 
 export type UserResponseType = {

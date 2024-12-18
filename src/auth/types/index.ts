@@ -1,6 +1,3 @@
-import { ObjectId } from 'mongodb';
-
-
 export type UserSessionsType = {
     userId: string;
     sessions: UserSessionByDeviceType[];
