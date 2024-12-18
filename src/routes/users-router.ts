@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { usersService } from '../users/services';
 import { usersQueryRepository } from '../users/repositories/users-query-repository';
 import { body } from 'express-validator';
-import { UsersQueryParams, UserQueryType } from '../users/types/usersTypes';
+import { UsersQueryParams, UserQueryType } from '../users/types';
 import { ObjectId } from 'mongodb';
 import { errorMiddleware } from '../middlewares/error-middleware';
 import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
@@ -16,7 +16,7 @@ usersRouter.get('/',
   async (req: Request<{}, {}, {}, UsersQueryParams>, res: Response) => {
     const usersQueryObj = req.query;
     const users = await usersQueryRepository.getAllUsers(usersQueryObj);
-    return res.send(users);
+    return res.status(200).send(users);
 });
 
 usersRouter.post('/',

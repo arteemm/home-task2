@@ -1,14 +1,11 @@
-import { CommentsItemsResponse, CommentResponseType } from '../types/commentsTypes';
-import { PostsQueryParams } from '../types/postsTypes';
-import { commentsCollection } from '../db';
+import { CommentsItemsResponse, CommentResponseType } from '../types';
+import { PostsQueryParams } from '../../posts/types';
+import { CommentModel } from '../schemas';
 
 const options = {
     projection: {
         _id: 0,
         id: '$_id',
-        content: 1,
-        commentatorInfo: 1,
-        createdAt: 1,
     }
 };
 
@@ -31,14 +28,15 @@ export const feedbacksQueryRepository = {
         } = postsQueryObj;
         const condition = {postId: postId};
         const direction = setDirection(sortDirection);
-        const totalCount = await commentsCollection.countDocuments(condition);
+        const totalCount = await CommentModel.countDocuments(condition);
         const pagesCount = Math.ceil(totalCount / pageSize);
-        const comments = await (commentsCollection
-            .find(condition, options)
+        const comments = await (CommentModel
+            .find(condition)
+            .select('-__v')
             .sort({[sortBy]: direction})
             .skip( pageNumber > 0 ? ( ( pageNumber - 1 ) * pageSize ) : 0 )
             .limit( +pageSize )
-            .toArray()) as unknown as CommentResponseType[];
+            ) as unknown as CommentResponseType[];
         
         return { pagesCount: +pagesCount, page: +pageNumber, pageSize: +pageSize, totalCount, items: comments };
     },

@@ -1,22 +1,11 @@
 import { UserSessionDeviceType,  } from '../types/';
-import { authCollection } from '../../db';
+import { AuthModel } from '../../auth/schemas';
 
-const options = {
-    projection: {
-        _id: 0,
-        sessions: 1,
-        // userId: 0,
-        // ip: '$sessions[0].ip',
-        // title: '$sessions[0].title',
-        // lastActiveDate: '$sessions[0].lastActiveDate',
-        // deviceId: '$sessions[0].deviceId'
-    }
-};
 
 export const securityQueryRepository = {
 
     async getAllUserDevices (userId: string): Promise<UserSessionDeviceType[] | null> {
-        const devices = await authCollection.findOne({userId});
+        const devices = await AuthModel.findOne({userId}).select('-_id -__v');
         
         let result: UserSessionDeviceType[] | null = null;
         if (devices) {
@@ -34,22 +23,21 @@ export const securityQueryRepository = {
     },
 
     async checkDeviceByData(userId: string, deviceId: string, lastActiveDate: string) {
-        const device = await authCollection.findOne({
+        const device = await AuthModel.findOne({
             userId: userId,
             'sessions.deviceId': deviceId,
             'sessions.lastActiveDate': lastActiveDate,
         });
-
         return device ? true : false;
     },
 
     async getAllActiveSessions() {
-        const devices = await authCollection.find({}).toArray();
+        const devices = await AuthModel.find({});
         return devices;
     },
 
     async checkActiveDevice(userId: string, deviceId: string) {
-        const device = await authCollection.findOne({
+        const device = await AuthModel.findOne({
             userId: userId, 'sessions.deviceId': deviceId,
         });
 

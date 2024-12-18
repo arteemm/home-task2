@@ -15,6 +15,7 @@ import { securityQueryRepository } from '../security/repositories/security-query
 import { checkAttemptsConfirmationMiddleware } from '../auth/middlewares/checkAttemptsConfirmationMiddleware';
 import { checkAttemptsRegConfirmationMiddleware } from '../auth/middlewares/checkAttemptsRegConfirmationMiddleware';
 import { checkAttemptsRegistrationMiddleware } from '../auth/middlewares/checkAttemptsRegistrationMiddleware';
+import { checkRecoveryCodeMiddleware } from '../auth/middlewares/checkRecoveryCodeMiddleware';
 
 
 export const authRouter = Router({});
@@ -124,6 +125,30 @@ authRouter.post('/logout',
         }
 
         await securityRepository.deleteUserDeviceById(userId, result!.deviceId);
+
+        return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
+    }
+);
+
+authRouter.post('/password-recovery',
+    body('email').isString().trim().notEmpty(),
+    body('email').matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('lal'),
+    checkAttemptsConfirmationMiddleware,
+    errorMiddleware,
+    async (req: Request, res: Response) => {
+        const result = await authService.passwordRecovery(req.body.email);
+
+        return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
+    }
+);
+
+authRouter.post('/new-password',
+    body(['newPassword', 'recoveryCode']).isString().trim().notEmpty(),
+    body('newPassword').isLength({min: 6, max: 20}).withMessage('lal'),
+    checkRecoveryCodeMiddleware,
+    errorMiddleware,
+    async (req: Request, res: Response) => {
+        const result = await authService.passwordRecovery(req.body.email);
 
         return res.send(HTTP_STATUS_CODES.SUCCESS_NO_CONTENT);
     }

@@ -1,0 +1,120 @@
+import request from 'supertest';
+import { app } from '../../src/app';
+import dotenv from 'dotenv';
+import { UserResponseType } from '../../src/users/types';
+import { MongoClient } from 'mongodb';
+import { ROUTERS_PATH_ENUM } from '../../src/constants/routersPath';
+import { usersTestsUtils } from '../utils/usersTests.utils';
+import { HTTP_STATUS_CODES } from '../../src/constants/httpStatusCodes';
+import mongoose from 'mongoose';
+
+dotenv.config();
+
+
+const dbName = 'home-task';
+const mongoURI = `mongodb://0.0.0.0:27017/${dbName}`;
+
+describe(ROUTERS_PATH_ENUM.USERS, () => {
+    const userPassword = "string";
+    let newUser: UserResponseType | null = null;
+    const client = new MongoClient(mongoURI);
+    const credentials = {
+        login: 'admin',
+        password: 'qwerty',
+    };
+
+    beforeAll(async () => {
+        await mongoose.connect(mongoURI);
+        await request(app).delete(ROUTERS_PATH_ENUM.TESTING + '/all-data').expect(204);
+    });
+
+    afterAll(async () => {
+        await mongoose.connection.close();
+    });
+
+    it('GET users = []', async () => {
+        await request(app).
+        get(ROUTERS_PATH_ENUM.USERS)
+        .auth('admin', 'qwerty')
+        .expect({ pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] })
+    });
+
+    it('GET shod return unauthorized', async () => {
+        await request(app).
+        get(ROUTERS_PATH_ENUM.USERS)
+        .auth('555', 'uuuu')
+        .expect(HTTP_STATUS_CODES.UNAUTHORIZED)
+    });
+
+    it('- Shouldn\'t create user with incorrect data', async () => {
+        const newUserRequestData = { login: "2", password: "s", email: "example" };
+        const createdUser = await usersTestsUtils.createUser(newUserRequestData, HTTP_STATUS_CODES.BAD_REQUEST);
+        expect(createdUser.body).toEqual( {
+            errorsMessages: [
+                { message: expect.any(String), field: 'login' },
+                { message: expect.any(String), field: 'password' },
+                { message: expect.any(String), field: 'email' }
+            ],
+        });
+        const users = await request(app)
+        .get(ROUTERS_PATH_ENUM.USERS)
+        .auth('admin', 'qwerty')
+        .expect({ pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] });
+
+    });
+
+    it('- Should returned unauthorized code with incorrect auth', async () => {
+        const newUserRequestData = { login: "2m1wFsZrBG", password: "string", email: "example@example.com" };
+
+        const result = await request(app)
+            .post(ROUTERS_PATH_ENUM.USERS)
+            .auth('mom', 'dad')
+            .send(newUserRequestData)
+            .expect(HTTP_STATUS_CODES.UNAUTHORIZED, {});
+
+        const users = await request(app)
+            .get(ROUTERS_PATH_ENUM.USERS)
+            .auth('admin', 'qwerty')
+            .expect({ pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] });
+
+    });
+
+    it('- Should create user1 with correct data', async () => {
+        const newUserRequestData = { login: "2m1wFsZrBG", password: userPassword, email: "example@example.com"};
+        const createdUser = await usersTestsUtils.createUser(newUserRequestData, HTTP_STATUS_CODES.SUCCESS_CREATED);
+
+        newUser = (createdUser.body);
+
+        expect(newUser).toEqual({
+            id: expect.any(String),
+            login: "2m1wFsZrBG",
+            email: "example@example.com",
+            createdAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/),
+          });
+    
+        const users = await request(app)
+        .get(ROUTERS_PATH_ENUM.USERS)
+        .auth('admin', 'qwerty');
+        expect(users.body).toEqual({ pagesCount: 1, page: 1, pageSize: 10, totalCount: 1, items: [newUser]})
+
+    });
+
+    it('- DELETE should remove the user by id ', async function () {
+
+        const result = await usersTestsUtils.deleteUser(newUser!.id, HTTP_STATUS_CODES.SUCCESS_NO_CONTENT, credentials);
+        expect(result.body).toEqual({});
+    });
+
+    it('GET should return posts by id', async () => {
+        await request(app)
+            .get(ROUTERS_PATH_ENUM.USERS)
+            .auth('admin', 'qwerty')
+            .expect({ pagesCount: 0, page: 1, pageSize: 10, totalCount: 0, items: [] })
+    });
+
+    it('- DELETE should return 404 with incorrect id ', async function () {
+
+        const result = await usersTestsUtils.deleteUser(newUser!.id, HTTP_STATUS_CODES.NOT_FOUND, credentials);
+        expect(result.body).toEqual({});
+    });
+});

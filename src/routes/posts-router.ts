@@ -1,11 +1,11 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { postsService } from '../domain/posts-service';
-import { blogRepository } from '../repositories/blogs-repository';
+import { postsService } from '../posts/domains';
+import { blogRepository } from '../blogs/repositories';
 import { body } from 'express-validator';
-import { PostsQueryParams } from '../types/postsTypes';
+import { PostsQueryParams } from '../posts/types';
 import { authMiddleware } from '../middlewares/auth-middleware';
-import { feedbackService } from '../domain/feedbacks-service';
-import { feedbacksQueryRepository } from '../repositories/feedbacks-query-repository';
+import { feedbackService } from '../comments/domains';
+import { feedbacksQueryRepository } from '../comments/repositories/feedbacks-query-repository';
 import { errorMiddleware } from '../middlewares/error-middleware';
 import { HTTP_STATUS_CODES } from '../constants/httpStatusCodes';
 import { validationAuthMiddleware } from '../middlewares/validation-auth-middleware';
@@ -74,7 +74,6 @@ postsRouter.post('/:postsId/comments',
       if (!post) {
         return res.send(HTTP_STATUS_CODES.NOT_FOUND);
       }
-
       const newComment = await feedbackService.createComment(req.body, req.userId, postsId);
       return res.status(HTTP_STATUS_CODES.SUCCESS_CREATED).send(newComment);
     }

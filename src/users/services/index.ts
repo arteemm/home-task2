@@ -1,5 +1,5 @@
 import { userRepository } from '../repositories/users-repository';
-import { UserQueryType, UserType, UserResponseType } from '../types/usersTypes';
+import { UserQueryType, UserType, UserResponseType } from '../types';
 import { ObjectId } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import { usersManager } from '../domain';
@@ -12,6 +12,7 @@ export const usersService = {
         const user: UserResponseType | null = await userRepository.getUserById(_id);
         return user;
     },
+
     async createUser (reqObj: UserQueryType): Promise<ObjectId> {
         const newUser = await usersManager.createUser(reqObj);
         await authRepository.createEntity(newUser._id);
@@ -39,5 +40,10 @@ export const usersService = {
     async setNewConfirmationCode(email: string) {
         const confirmationCode = uuidv4();
         return await userRepository.updateConfirmationCode(email, confirmationCode);
+    },
+
+    async setNewRecoveryCode(email: string) {
+        const recoveryCode = uuidv4();
+        return await userRepository.updateRecoveryCode(email, recoveryCode);
     },
 };

@@ -1,31 +1,19 @@
-import { MongoClient } from 'mongodb';
-import { BlogItemType } from '../types/blogsTypes';
-import { PostItemType } from '../types/postsTypes';
-import { UserType } from '../users/types/usersTypes';
-import { CommentType } from '../types/commentsTypes';
-import { UserSessionsType } from '../auth/types';
 import * as dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
 dotenv.config();
 
-const mongoURI = process.env.MONGO_URL || 'mongodb://0.0.0.0:27017';
+// const mongoURI = process.env.MONGO_URL || 'mongodb://0.0.0.0:27017';
+const mongoURI =  'mongodb://0.0.0.0:27017';
 
-const client = new MongoClient(mongoURI);
-export const db = client.db('home-task');
-export const blogsCollection = db.collection<BlogItemType>('blogs');
-export const postsCollection = db.collection<PostItemType>('posts');
-export const usersCollection = db.collection<UserType>('users');
-export const commentsCollection = db.collection<CommentType>('comments');
-export const authCollection = db.collection<UserSessionsType>('auth');
-
+const dbName = 'home-task';
 
 export async function runDb () {
     try {
-        await client.connect();
-        await client.db('posts').command({ ping: 1 });
+        await mongoose.connect(mongoURI + '/' + dbName)
         console.log('Connected successfully to mongo server');
     } catch {
         console.log('Can\'t connect to db');
-        await client.close();
+        await mongoose.disconnect()
     }
 };

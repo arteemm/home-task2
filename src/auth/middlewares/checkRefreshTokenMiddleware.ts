@@ -11,13 +11,12 @@ export const checkRefreshTokenMiddleware = async (req: Request, res: Response, n
     
     if (result.isEmpty()) {
         const result = await jwtService.getUserDataByToken(refreshToken);
-        
+
         if (!result) {
             return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)
         }
         const userId = result.userId.toString() as string;
         const isActiveDevice = await securityQueryRepository.checkDeviceByData(userId, result?.deviceId, new Date(result?.iat).toJSON())
-
         if (!isActiveDevice) {
             return res.send(HTTP_STATUS_CODES.UNAUTHORIZED)
         }

@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authMiddleware } from '../middlewares/auth-middleware';
-import { feedbackService } from '../domain/feedbacks-service';
+import { feedbackService } from '../comments/domains';
 import { body } from 'express-validator';
 import { ObjectId } from 'mongodb';
 import { errorMiddleware } from '../middlewares/error-middleware';
@@ -71,6 +71,12 @@ feedbackRouter.delete('/:id',
 
     if (req.userId) {
     const comment = await feedbackService.getCommentById(id);
+    
+    if (!comment) {
+      res.send(HTTP_STATUS_CODES.NOT_FOUND);
+      return;
+    }
+
     const isOwner = await feedbackService.checkOwnerComment(comment!.commentatorInfo.userId, req.userId);
       if (!isOwner) {
         return res.send(HTTP_STATUS_CODES.FORBIDDEN);
